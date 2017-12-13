@@ -1,0 +1,3 @@
+[submodule "modules/oConsole"]
+	path = modules/oConsole
+	url = https://github.com/SkyLined/oConsole/
