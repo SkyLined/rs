@@ -187,6 +187,8 @@ def fMain(asArgs):
       oBeforeAfterMatch = re.match(r"^(?:(\d+)|(?:\-(\d+))?(?:(?:,|,?\+)(\d+))?)$", sArg);
       if not oBeforeAfterMatch:
         oConsole.fPrint(ERROR, "Invalid lines range ", ERROR_INFO, sArg, ERROR, ".");
+        oConsole.fPrint("Try ", INFO, "N", NORMAL, ", ", INFO, "-N", NORMAL, ", ", INFO, "-N+N", NORMAL, ", or ", INFO, "+N", NORMAL, ".");
+        oConsole.fPrint("Where each N is an integer. '-' prefix indicates before, '+' prefix indices after the match.");
         return -1;
       suBeforeAndAfer, suBefore, suAfter = oBeforeAfterMatch.groups();
       if suBeforeAndAfer:
@@ -205,8 +207,9 @@ def fMain(asArgs):
       try:
         rRegExp = re.compile(unicode(sRegExp), sum([{"m":re.M, "i": re.I}[sFlag] for sFlag in sFlags]));
       except Exception, oException:
-        oConsole.fPrint(ERROR, "Invalid regular expressions ", ERROR_INFO, sNegative, ERROR, "/", ERROR_INFO, \
-            sRegExp, ERROR, "/", ERROR_INFO, sFlags, ERROR, ": ", ERROR_INFO, oException.message, ERROR, ".");
+        oConsole.fPrint(ERROR, "Invalid regular expressions ", ERROR_INFO, sNegative or "", ERROR, "/", ERROR_INFO, \
+            sRegExp, ERROR, "/", ERROR_INFO, sFlags);
+        oConsole.fPrint("     ", ERROR_INFO, oException.message, ERROR, ".");
         return -1;
       else:
         if bRegExpArgsAreForPath:
