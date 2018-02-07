@@ -30,10 +30,10 @@ for (sModule, sURL) in {
       print "*" * 80;
     raise;
 
-from cProcess import cProcess;
 from fasMultithreadedFileFinder import fasMultithreadedFileFinder;
 from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
 from mColors import *;
+from mWindowsAPI import cConsoleProcess;
 from oConsole import oConsole;
 from oProductDetails import oProductDetails;
 sComSpec = unicode(os.environ["COMSPEC"]);
@@ -77,7 +77,11 @@ def fRunCommand(asCommandTemplate, sFilePath, auLineNumbers):
     re.sub(u"%(f|l|[dpnx]+)", fsSubstitudePathTemplates, sTemplate)
     for sTemplate in asCommandTemplate
   ];
-  cProcess([sComSpec, u"/C"] + asCommandLine).fuWaitForTermination();
+  oProcess = cConsoleProcess.foCreateForBinaryPathAndArguments(
+    sBinaryPath = sComSpec,
+    asArguments = [u"/C"] + asCommandLine,
+  );
+  oProcess.fbWait();
 
 def fShowHelp():
   print """
@@ -390,7 +394,7 @@ def fMain(asArgs):
         auMatchedLineNumbers = sorted(oContentMatchingResults.dMatched_auLineNumbers_by_sFilePath[sFilePath]);
         if not bQuiet:
           if not bOutputRelevantLines:
-            oConsole.fPrint(INFO, sFilePath, *["/%d" % u for u in auMatchedLineNumbers]);
+            oConsole.fPrint(0x0F0A, sFilePath, 0x0F03, *["/%d" % u for u in auMatchedLineNumbers]);
           else:
             if bFirst:
               bFirst = False;
