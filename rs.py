@@ -12,6 +12,7 @@ sys.path += [sPath for sPath in [
 ] if sPath.lower() not in asAbsoluteLoweredSysPaths];
 
 for (sModule, sURL) in {
+  "mProductVersionAndLicense": "https://github.com/SkyLined/mProductVersionAndLicense/",
   "oConsole": "https://github.com/SkyLined/oConsole/",
 }.items():
   try:
@@ -32,8 +33,9 @@ for (sModule, sURL) in {
 from cProcess import cProcess;
 from fasMultithreadedFileFinder import fasMultithreadedFileFinder;
 from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
-from oConsole import oConsole;
 from mColors import *;
+from oConsole import oConsole;
+from oProductDetails import oProductDetails;
 sComSpec = unicode(os.environ["COMSPEC"]);
 uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
 
@@ -161,6 +163,17 @@ def frRegExp(sRegExp, sFlags):
 
 def fMain(asArgs):
   oConsole.uDefaultColor = NORMAL;
+  asLicenseErrors = oProductDetails.fasGetLicenseErrors();
+  if asLicenseErrors:
+    oConsole.fPrint(ERROR, "You do not have a valid license for this software:");
+    for sLicenseError in asLicenseErrors:
+      oConsole.fPrint(ERROR_INFO, sLicenseError);
+    return -1;
+  asLicenseWarnings = oProductDetails.fasGetLicenseWarnings();
+  if asLicenseWarnings:
+    oConsole.fPrint(ERROR, "Warning:");
+    for sLicenseWarning in asLicenseWarnings:
+      oConsole.fPrint("  * ", HILITE, sLicenseWarning);
   asFilePaths = set();
   asFolderPaths = set();
   arContentRegExps = [];
