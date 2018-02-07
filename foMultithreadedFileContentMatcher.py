@@ -57,12 +57,14 @@ class cMultithreadedFileContentMatcher(object):
           break;
         oSelf.oFileScansStarted.fuIncrease();
         oSelf.fDebug("start scan (%s)" % sFilePath);
+        nStartTime = time.clock();
+        fnScanTime = lambda: time.clock() - nStartTime;
         try:
           oFile = open(sFilePath, "rb");
         except Exception, oException:
           oSelf.oasNotScannedFilePaths.fAdd(sFilePath);
           oSelf.oFileScansFinished.fuIncrease();
-          oSelf.fDebug("stop scan: can't open %s" % sFilePath);
+          oSelf.fDebug("stop scan: can't open %s (%fs)" % (sFilePath, fnScanTime()));
           continue;
         if oSelf.oException: return;
         try:
@@ -70,7 +72,7 @@ class cMultithreadedFileContentMatcher(object):
         except Exception, oException:
           oSelf.oasNotScannedFilePaths.fAdd(sFilePath);
           oSelf.oFileScansFinished.fuIncrease();
-          oSelf.fDebug("stop scan: can't read %s" % sFilePath);
+          oSelf.fDebug("stop scan: can't read %s (%fs)" % (sFilePath, fnScanTime()));
           continue;
         finally:
           oFile.close();
@@ -84,7 +86,7 @@ class cMultithreadedFileContentMatcher(object):
           oMatch = rNegativeContentRegExp.search(sContent)
           if oMatch:
             bNegativeMatch = True;
-            oSelf.fDebug("stop scan: !/%s/ => %s in %s" % (rNegativeContentRegExp.pattern, repr(oMatch.group(0)), sFilePath));
+            oSelf.fDebug("stop scan: !/%s/ => %s in %s (%fs)" % (rNegativeContentRegExp.pattern, repr(oMatch.group(0)), sFilePath, fnScanTime()));
             break; # If it matches a negative reg.exp., stop.
           oSelf.fDebug("scan: no match for !/%s/ in %s" % (rNegativeContentRegExp.pattern, sFilePath));
         if bNegativeMatch:
@@ -94,7 +96,7 @@ class cMultithreadedFileContentMatcher(object):
         if not oSelf.arContentRegExps:
           oSelf.dMatched_auLineNumbers_by_sFilePath[sFilePath] = set([0]);
           oSelf.oFileScansFinished.fuIncrease();
-          oSelf.fDebug("stop scan: no negative matched means matched in %s" % sFilePath);
+          oSelf.fDebug("stop scan: no negative matched means matched in %s (%fs)" % (sFilePath, fnScanTime()));
           continue;
         bSaveRelevantLines = oSelf.uNumberOfRelevantLinesBeforeMatch is not None or oSelf.uNumberOfRelevantLinesAfterMatch is not None;
         if bSaveRelevantLines:
@@ -113,7 +115,7 @@ class cMultithreadedFileContentMatcher(object):
             uMatchedLinesCount = sContent.count("\n", oMatch.start(), oMatch.end()) + 1;
             for uMatchedLineCount in xrange(uMatchedLinesCount):
               auLineNumbers.add(uCurrentLineNumber + uMatchedLineCount);
-            oSelf.fDebug("scan: matched /%s/ on line #%d in %s" % (rContentRegExp.pattern, uCurrentLineNumber, sFilePath));
+            oSelf.fDebug("scan: matched /%s/ on line #%d in %s (%fs)" % (rContentRegExp.pattern, uCurrentLineNumber, sFilePath, fnScanTime()));
             if bSaveRelevantLines:
               # Find the start of the first relevant line, by finding the start of the line on which the match starts
               # and going back the requested number of lines, if possible.
@@ -123,7 +125,7 @@ class cMultithreadedFileContentMatcher(object):
                     break;
                   uCurrentLineStartIndex = sContent.rfind("\n", 0, uCurrentLineStartIndex - 1) + 1;
                   uCurrentLineNumber -= 1;
-              oSelf.fDebug("scan:   start relevant lines at #%d in %s" % (uCurrentLineNumber, sFilePath));
+              oSelf.fDebug("scan:   start relevant lines at #%d in %s (%fs)" % (uCurrentLineNumber, sFilePath, fnScanTime()));
               # Find the end of the last relevant line, by adding lines until we reach the end of the match and then
               # continue for the requested number of lines, if possible.
               uAdditionalLinesToAddAfterMatch = oSelf.uNumberOfRelevantLinesAfterMatch or 0;
@@ -140,13 +142,13 @@ class cMultithreadedFileContentMatcher(object):
                   uAdditionalLinesToAddAfterMatch -= 1;
                 uCurrentLineStartIndex = uCurrentLineEndIndex + 1;
           if not bFound:
-            oSelf.fDebug("scan: no match for /%s/ in %s" % (rContentRegExp.pattern, sFilePath));
+            oSelf.fDebug("scan: no match for /%s/ in %s (%fs)" % (rContentRegExp.pattern, sFilePath, fnScanTime()));
             auLineNumbers = [];
             break;
         if auLineNumbers:
           oSelf.dMatched_auLineNumbers_by_sFilePath[sFilePath] = sorted(list(auLineNumbers));
         oSelf.oFileScansFinished.fuIncrease();
-        oSelf.fDebug("scan done");
+        oSelf.fDebug("scan done (%fs)" % fnScanTime());
     except Exception as oException:
       oSelf.oException = oException;
       raise;
