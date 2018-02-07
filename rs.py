@@ -379,22 +379,38 @@ def fMain(asArgs):
           if not bOutputRelevantLines:
             oConsole.fPrint(INFO, sFilePath, *["/%d" % u for u in auMatchedLineNumbers]);
           else:
-            # Newline between results for different files.
             if bFirst:
               bFirst = False;
             else:
+              # Separator between results for different files.
               oConsole.fPrint();
-            oConsole.fPrint(HEADER, sFilePath, "/", str(auMatchedLineNumbers[0]), sPadding = " ");
+            uNextMatchedLineIndex = 0;
+            oConsole.fPrint(0x0F0A, sPadding = "_");
+            oConsole.fPrint(
+              "     ",
+              0x0F0A, sFilePath, "/", str(auMatchedLineNumbers[uNextMatchedLineIndex]),
+              sPadding = " "
+            );
             auRelevantLineNumbers = sorted(oContentMatchingResults.dRelevant_asLines_by_uLineNumber_by_sFilePath[sFilePath].keys());
             uPreviousLineNumber = None;
             for uRelevantLineNumber in auRelevantLineNumbers:
               # Seperator between non-sequential sections of file.
               if uPreviousLineNumber is not None and uRelevantLineNumber > uPreviousLineNumber + 1:
-                oConsole.fPrint(DIM, sFilePath, "/", str(uRelevantLineNumber), " ", sPadding = "\xFA");
+                oConsole.fPrint(
+                  DIM, "\xFA\xFA\xFA\xFA ",
+                  0x0F02, sFilePath, "/", str(auMatchedLineNumbers[uNextMatchedLineIndex]),
+                  " ", sPadding = "\xFA"
+               );
               sRelevantLine = oContentMatchingResults.dRelevant_asLines_by_uLineNumber_by_sFilePath[sFilePath][uRelevantLineNumber];
-              bMatchedLine = (uRelevantLineNumber in auMatchedLineNumbers);
-              oConsole.fPrint("%4d " % uRelevantLineNumber, bMatchedLine and SELECTED or NORMAL, sRelevantLine, \
-                uConvertTabsToSpaces = uConvertTabsToSpaces);
+              bMatchedLine = uNextMatchedLineIndex < len(auMatchedLineNumbers) and uRelevantLineNumber == auMatchedLineNumbers[uNextMatchedLineIndex];
+              if bMatchedLine:
+                uNextMatchedLineIndex += 1;
+              oConsole.fPrint(
+                bMatchedLine and NORMAL or DIM, "%4d" % uRelevantLineNumber,
+                NORMAL, " ",
+                bMatchedLine and 0xFF1A or NORMAL, sRelevantLine,
+                uConvertTabsToSpaces = uConvertTabsToSpaces,
+              );
               uPreviousLineNumber = uRelevantLineNumber;
         if bArgsAreCommandTemplate:
           fRunCommand(asCommandTemplate, sFilePath, auMatchedLineNumbers);
