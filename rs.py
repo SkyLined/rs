@@ -153,6 +153,12 @@ Examples:
 
 """.strip("\n").replace("\n", "\r\n");
 
+def frRegExp(sRegExp, sFlags):
+  return re.compile(unicode(sRegExp), sum([
+    {"i": re.I, "l":re.L, "m":re.M, "s": re.S, "u": re.U, "x": re.X}[sFlag]
+    for sFlag in sFlags
+  ]));
+
 def fMain(asArgs):
   oConsole.uDefaultColor = NORMAL;
   asFilePaths = set();
@@ -201,11 +207,11 @@ def fMain(asArgs):
     if bArgsAreCommandTemplate:
       asCommandTemplate.append(sArg);
       continue;
-    oRegExpMatch = re.match(r"^(!)?\/(.*)\/(mi?|im?|)$", sArg);
+    oRegExpMatch = re.match(r"^(!)?\/(.*)\/([ilmsux]*)$", sArg);
     if oRegExpMatch:
       sNegative, sRegExp, sFlags = oRegExpMatch.groups();
       try:
-        rRegExp = re.compile(unicode(sRegExp), sum([{"m":re.M, "i": re.I}[sFlag] for sFlag in sFlags]));
+        rRegExp = frRegExp(sRegExp, sFlags);
       except Exception, oException:
         oConsole.fPrint(ERROR, "Invalid regular expressions ", ERROR_INFO, sNegative or "", ERROR, "/", ERROR_INFO, \
             sRegExp, ERROR, "/", ERROR_INFO, sFlags);
@@ -232,7 +238,7 @@ def fMain(asArgs):
         bFirst = False;
         if sRegExp in ["", "-"]:
           break;
-        oRegExpMatch = re.match(r"^(!)?\/(.*)\/(mi?|im?|)$", sRegExp);
+        oRegExpMatch = re.match(r"^(!)?\/(.*)\/([ilmsux]*)$", sRegExp);
         if not oRegExpMatch:
           # Not a regular expression - use as string
           sRegExp = re.escape(sRegExp);
@@ -240,7 +246,7 @@ def fMain(asArgs):
         else:
           sNegative, sRegExp, sFlags = oRegExpMatch.groups();
         try:
-          rRegExp = re.compile(unicode(sRegExp), sum([{"m":re.M, "i": re.I}[sFlag] for sFlag in sFlags]));
+          rRegExp = frRegExp(sRegExp, sFlags);
         except Exception, oException:
           oConsole.fPrint(ERROR, "Invalid regular expressions ", ERROR_INFO, sNegative, ERROR, "/", ERROR_INFO, \
               sRegExp, ERROR, "/", ERROR_INFO, sFlags, ERROR, ": ", ERROR_INFO, oException.message, ERROR, ".");
