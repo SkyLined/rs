@@ -3,20 +3,16 @@ import json, math, multiprocessing, os, re, sys;
 # Augment the search path: look in main folder, parent folder or "modules" child folder, in that order.
 sMainFolderPath = os.path.abspath(os.path.dirname(__file__));
 sParentFolderPath = os.path.normpath(os.path.join(sMainFolderPath, ".."));
-sModuleFolderPath = os.path.join(sMainFolderPath, "modules");
-asAbsoluteLoweredSysPaths = [os.path.abspath(sPath).lower() for sPath in sys.path];
-sys.path += [sPath for sPath in [
-  sMainFolderPath,
-  sParentFolderPath,
-  sModuleFolderPath,
-] if sPath.lower() not in asAbsoluteLoweredSysPaths];
+sModulesFolderPath = os.path.join(sMainFolderPath, "modules");
+asOriginalSysPath = sys.path[:];
+sys.path = [sParentFolderPath, sModulesFolderPath] + asOriginalSysPath;
 
-for (sModule, sURL) in {
-  "mProductVersionAndLicense": "https://github.com/SkyLined/mProductVersionAndLicense/",
+for (sModuleName, sURL) in {
+  "mProductDetails": "https://github.com/SkyLined/mProductDetails/",
   "oConsole": "https://github.com/SkyLined/oConsole/",
 }.items():
   try:
-    __import__(sModule, globals(), locals(), [], -1);
+    __import__(sModuleName, globals(), locals(), [], -1);
   except ImportError, oError:
     if oError.message == "No module named %s" % sModuleName:
       print "*" * 80;
@@ -30,12 +26,20 @@ for (sModule, sURL) in {
       print "*" * 80;
     raise;
 
+# Restore the search path
+sys.path = asOriginalSysPath;
+
+# Read product details for rs and all modules it uses.
+import mProductDetails, mWindowsAPI, oConsole;
+oMainProductDetails = mProductDetails.cProductDetails.foReadForMainModule();
+mProductDetails.cProductDetails.foReadForModule(oConsole);
+mProductDetails.cProductDetails.foReadForModule(mProductDetails);
+mProductDetails.cProductDetails.foReadForModule(mWindowsAPI);
+
 from fasMultithreadedFileFinder import fasMultithreadedFileFinder;
 from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
 from mColors import *;
-from mWindowsAPI import cConsoleProcess;
 from oConsole import oConsole;
-from oProductDetails import oProductDetails;
 sComSpec = unicode(os.environ["COMSPEC"]);
 uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
 
@@ -77,7 +81,7 @@ def fRunCommand(asCommandTemplate, sFilePath, auLineNumbers):
     re.sub(u"%(f|l|[dpnx]+)", fsSubstitudePathTemplates, sTemplate)
     for sTemplate in asCommandTemplate
   ];
-  oProcess = cConsoleProcess.foCreateForBinaryPathAndArguments(
+  oProcess = mWindowsAPI.cConsoleProcess.foCreateForBinaryPathAndArguments(
     sBinaryPath = sComSpec,
     asArguments = [u"/C"] + asCommandLine,
   );
@@ -165,19 +169,42 @@ def frRegExp(sRegExp, sFlags):
     for sFlag in sFlags
   ]));
 
+def fShowVersionAndLicenseInformation():
+  def fPrintProductDetails(oProductDetails, uIndent = 0):
+    oConsole.fPrint( \
+        NORMAL, " " * uIndent,
+        INFO, oProductDetails.sProductName, \
+        NORMAL, " version ", INFO, str(oProductDetails.oProductVersion), NORMAL, ".");
+    if oProductDetails.oLicense:
+      oConsole.fPrint( \
+          NORMAL, " " * (uIndent + 2), "+ Licensed to ", INFO, oProductDetails.oLicense.sLicenseeName, \
+          NORMAL, " for ", INFO, oProductDetails.oLicense.sUsageTypeDescription, \
+          NORMAL, " on up to ", INFO, str(oProductDetails.oLicense.uLicensedInstances), \
+          NORMAL, " systems until ", INFO, str(oProductDetails.oLicense.oEndDate), NORMAL, ".");
+    else:
+      assert oProductDetails.bInTrialPeriod, \
+          "This code should not be reached";
+      oConsole.fPrint( \
+          NORMAL, " " * (uIndent + 2), WARNING, "* In trial period.");
+  fPrintProductDetails(oMainProductDetails);
+  oConsole.fPrint("This product depends on the following modules:");
+  for oProductDetails in oMainProductDetails.faoGetAllLoadedProductDetails():
+    if oProductDetails != oMainProductDetails:
+      fPrintProductDetails(oProductDetails, uIndent = 2);
+
 def fMain(asArgs):
   oConsole.uDefaultColor = NORMAL;
-  asLicenseErrors = oProductDetails.fasGetLicenseErrors();
+  asLicenseErrors = oMainProductDetails.fasGetLicenseErrors();
   if asLicenseErrors:
-    oConsole.fPrint(ERROR, "You do not have a valid license for this software:");
+    oConsole.fPrint(ERROR, "- You do not have a valid license to use this software:");
     for sLicenseError in asLicenseErrors:
-      oConsole.fPrint(ERROR_INFO, sLicenseError);
+      oConsole.fPrint(NORMAL, "  ", ERROR_INFO, sLicenseError);
     return -1;
-  asLicenseWarnings = oProductDetails.fasGetLicenseWarnings();
+  asLicenseWarnings = oMainProductDetails.fasGetLicenseWarnings();
   if asLicenseWarnings:
-    oConsole.fPrint(ERROR, "Warning:");
+    oConsole.fPrint(WARNING, "Warning:");
     for sLicenseWarning in asLicenseWarnings:
-      oConsole.fPrint("  * ", HILITE, sLicenseWarning);
+      oConsole.fPrint(WARNING, "  * ", sLicenseWarning);
   asFilePaths = set();
   asFolderPaths = set();
   arContentRegExps = [];
@@ -295,6 +322,9 @@ def fMain(asArgs):
         bUnicode = True;
       elif sArg in ["-q", "/q", "--quiet", "/quiet"]:
         bQuiet = True;
+      elif sArg in ["--version", "/version"]:
+        fShowVersionAndLicenseInformation();
+        return 0;
       elif sArg in ["-p", "--path", "/p", "/path"]:
         bRegExpArgsAreForPath = True;
       elif sArg in ["-c", "--content", "/c", "/content"]:
