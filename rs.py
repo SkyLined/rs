@@ -127,6 +127,7 @@ Options:
                     in combination with "--", if you only want to execute the
                     command and are not interested in the file names.
     -l N, --lines N Show N lines of the file's content around each match.
+    --version       Show version and license information.
 Notes:
   - Regular expressions start and end with a slash "/" and can optionally have
     an "i" (case Insensitive) and/or "m" (Multi-line) suffix.
@@ -193,7 +194,6 @@ def fShowVersionAndLicenseInformation():
       fPrintProductDetails(oProductDetails, uIndent = 2);
 
 def fMain(asArgs):
-  oConsole.uDefaultColor = NORMAL;
   asLicenseErrors = oMainProductDetails.fasGetLicenseErrors();
   if asLicenseErrors:
     oConsole.fPrint(ERROR, "- You do not have a valid license to use this software:");
@@ -424,7 +424,10 @@ def fMain(asArgs):
         auMatchedLineNumbers = sorted(oContentMatchingResults.dMatched_auLineNumbers_by_sFilePath[sFilePath]);
         if not bQuiet:
           if not bOutputRelevantLines:
-            oConsole.fPrint(0x0F0A, sFilePath, 0x0F03, *["/%d" % u for u in auMatchedLineNumbers]);
+            oConsole.fPrint(
+              FILE_NAME, sFilePath,
+              FILE_LINENO, "/", ",".join([str(u) for u in auMatchedLineNumbers]),
+            );
           else:
             if bFirst:
               bFirst = False;
@@ -432,11 +435,11 @@ def fMain(asArgs):
               # Separator between results for different files.
               oConsole.fPrint();
             uNextMatchedLineIndex = 0;
-            oConsole.fPrint(0x0F0A, sPadding = "_");
             oConsole.fPrint(
-              "     ",
-              0x0F0A, sFilePath, "/", str(auMatchedLineNumbers[uNextMatchedLineIndex]),
-              sPadding = " "
+              FILE_BOX, " ",
+              FILE_BOX_NAME, sFilePath,
+              FILE_BOX_LINENO, "/%d" % auMatchedLineNumbers[uNextMatchedLineIndex],
+              FILE_BOX, sPadding = " ",
             );
             auRelevantLineNumbers = sorted(oContentMatchingResults.dRelevant_asLines_by_uLineNumber_by_sFilePath[sFilePath].keys());
             uPreviousLineNumber = None;
@@ -444,18 +447,23 @@ def fMain(asArgs):
               # Seperator between non-sequential sections of file.
               if uPreviousLineNumber is not None and uRelevantLineNumber > uPreviousLineNumber + 1:
                 oConsole.fPrint(
-                  DIM, "\xFA\xFA\xFA\xFA ",
-                  0x0F02, sFilePath, "/", str(auMatchedLineNumbers[uNextMatchedLineIndex]),
-                  " ", sPadding = "\xFA"
+                  FILE_BOX, " ",
+                  FILE_CUT_LINENO_COLOMN, "\xFA" * 6,
+                  LINENO_CONTENT_SEPARATOR, ":",
+                  FILE_CUT_NAME, " ", sFilePath,
+                  FILE_CUT_LINENO, "/%d" % auMatchedLineNumbers[uNextMatchedLineIndex],
+                  FILE_CUT_PAD, " ", sPadding = "\xFA",
                );
               sRelevantLine = oContentMatchingResults.dRelevant_asLines_by_uLineNumber_by_sFilePath[sFilePath][uRelevantLineNumber];
               bMatchedLine = uNextMatchedLineIndex < len(auMatchedLineNumbers) and uRelevantLineNumber == auMatchedLineNumbers[uNextMatchedLineIndex];
               if bMatchedLine:
                 uNextMatchedLineIndex += 1;
               oConsole.fPrint(
-                bMatchedLine and NORMAL or DIM, "%4d" % uRelevantLineNumber,
-                NORMAL, " ",
-                bMatchedLine and 0xFF1A or NORMAL, sRelevantLine,
+                FILE_BOX, " ",
+                bMatchedLine and LINENO_COLOMN_MATCH or LINENO_COLOMN, "%6d" % uRelevantLineNumber,
+                LINENO_CONTENT_SEPARATOR, "\xB3",
+                bMatchedLine and CONTENT_MATCH or CONTENT, sRelevantLine,
+                CONTENT_EOL, "\x1B\xD9",
                 uConvertTabsToSpaces = uConvertTabsToSpaces,
               );
               uPreviousLineNumber = uRelevantLineNumber;

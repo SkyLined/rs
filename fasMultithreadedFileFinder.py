@@ -120,7 +120,7 @@ class cMultithreadedFileFinder(object):
         if rNegativePathRegExp.search(sItemPath):
           # Matching negative reg.exp. meand don't add (and stop matching).
           if oSelf.bVerbose:
-            oConsole.fPrint(LOWKEY, "  - %s (matches negative reg.exp.)" % sItemPath);
+            oConsole.fPrint(DIM, "  - %s (matches negative reg.exp.)" % sItemPath);
           return;
       else:
         # Not matching negative reg.exp. means maybe add:
@@ -139,7 +139,7 @@ class cMultithreadedFileFinder(object):
             else:
               # Not matching positive reg.exps. means don't add.
               if oSelf.bVerbose:
-                oConsole.fPrint(LOWKEY, "  - %s (does not match any reg.exp.)" % sItemPath);
+                oConsole.fPrint(DIM, "  - %s (does not match any reg.exp.)" % sItemPath);
               return;
     oSelf.oasMatchedFilePaths.fAdd(sItemPath);
   
@@ -160,7 +160,7 @@ class cMultithreadedFileFinder(object):
           uNumberOfItemsRemaining,
           uNumberOfItemsFound,
         );
-        oConsole.fProgressBar(nProgress,  sStatus);
+        oConsole.fProgressBar(nProgress,  sStatus, uBarColor = BAR, uProgressColor = BAR_PROGRESS);
         time.sleep(0.25);
     except Exception as oException:
       oSelf.oException = oException;

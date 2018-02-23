@@ -166,7 +166,7 @@ class cMultithreadedFileContentMatcher(object):
           oSelf.uNumberOfFiles - oSelf.oFileScansFinished.uValue,
           oSelf.uNumberOfFiles,
         );
-        oConsole.fProgressBar(nProgress,  sStatus);
+        oConsole.fProgressBar(nProgress, sStatus, uBarColor = BAR, uProgressColor = BAR_PROGRESS);
         time.sleep(0.25);
     except Exception as oException:
       oSelf.oException = oException;
