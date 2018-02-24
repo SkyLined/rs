@@ -8,12 +8,11 @@ HILITE =            0x0F0F; # Bright white
 ERROR =             0x0F04; # Red
 ERROR_INFO =        0x0F0C; # Bright red
 WARNING =           0x0F06; # Yellow
-WARNING_INFO =      0x0F0D; # Bright yellow
+WARNING_INFO =      0x0F0E; # Bright yellow
 
 oConsole.uDefaultColor = NORMAL;
-
-BAR =               0xFF1B; # Progress bar background.
-BAR_PROGRESS =      0xFFB1; # Progress bar completed.
+oConsole.uDefaultBarColor = 0xFF1B; # Light cyan on Dark blue
+oConsole.uDefaultProgressColor = 0xFFB1; # Dark blue on light cyan
 
 FILE_NAME =         0xFF0B; # The file name
 FILE_LINENO =       0xFF09; # The line numbers in the file after the file name.
