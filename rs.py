@@ -8,7 +8,9 @@ asOriginalSysPath = sys.path[:];
 sys.path = [sParentFolderPath, sModulesFolderPath] + asOriginalSysPath;
 
 for (sModuleName, sURL) in {
+  "mFileSystem": "https://github.com/SkyLined/mFileSystem/",
   "mProductDetails": "https://github.com/SkyLined/mProductDetails/",
+  "mWindowsAPI": "https://github.com/SkyLined/mWindowsAPI/",
   "oConsole": "https://github.com/SkyLined/oConsole/",
 }.items():
   try:
@@ -16,7 +18,7 @@ for (sModuleName, sURL) in {
   except ImportError, oError:
     if oError.message == "No module named %s" % sModuleName:
       print "*" * 80;
-      print "rs depends on %s which you can download at:" % sModuleName;
+      print "%s depends on %s which you can download at:" % (os.path.filename(__file__), sModuleName);
       print "    %s" % sDownloadURL;
       print "After downloading, please save the code in this folder:";
       print "    %s" % os.path.join(sModuleFolderPath, sModuleName);
@@ -30,11 +32,12 @@ for (sModuleName, sURL) in {
 sys.path = asOriginalSysPath;
 
 # Read product details for rs and all modules it uses.
-import mProductDetails, mWindowsAPI, oConsole;
-oMainProductDetails = mProductDetails.cProductDetails.foReadForMainModule();
-mProductDetails.cProductDetails.foReadForModule(oConsole);
+import mFileSystem, mProductDetails, mWindowsAPI, oConsole;
+oRSProductDetails = mProductDetails.cProductDetails.foReadForMainModule();
+mProductDetails.cProductDetails.foReadForModule(mFileSystem);
 mProductDetails.cProductDetails.foReadForModule(mProductDetails);
 mProductDetails.cProductDetails.foReadForModule(mWindowsAPI);
+mProductDetails.cProductDetails.foReadForModule(oConsole);
 
 from fasMultithreadedFileFinder import fasMultithreadedFileFinder;
 from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
@@ -171,36 +174,62 @@ def frRegExp(sRegExp, sFlags):
   ]));
 
 def fShowVersionAndLicenseInformation():
+  # Check for updates...
+  uTotalProducts = len(oRSProductDetails.doProductDetails_by_sName);
+  uCounter = 0;
+  bErrorHeaderShown = False;
+  for oProductDetails in oRSProductDetails.doProductDetails_by_sName.values():
+    oConsole.fProgressBar(
+      uCounter * 1.0 / uTotalProducts,
+      "* Checking %s for updates..." % oProductDetails.sProductName,
+    );
+    try:
+      oProductDetails.oLatestProductDetailsFromRepository;
+    except Exception as oException:
+      if not bErrorHeaderShown:
+        oConsole.fPrint(
+          ERROR, u"Error:",
+        );
+        bErrorHeaderShown = True;
+      oConsole.fPrint(
+        ERROR, u"  - Version check for ", ERROR_INFO, oProductDetails.sProductName,
+        ERROR, " failed: ", ERROR_INFO, str(oException),
+      );
+    uCounter+=1;
+  # Show version information:
   def fPrintProductDetails(oProductDetails, uIndent = 0):
-    oConsole.fPrint( \
-        NORMAL, " " * uIndent,
-        INFO, oProductDetails.sProductName, \
-        NORMAL, " version ", INFO, str(oProductDetails.oProductVersion), NORMAL, ".");
-    if oProductDetails.oLicense:
-      oConsole.fPrint( \
-          NORMAL, " " * (uIndent + 2), "+ Licensed to ", INFO, oProductDetails.oLicense.sLicenseeName, \
-          NORMAL, " for ", INFO, oProductDetails.oLicense.sUsageTypeDescription, \
-          NORMAL, " on up to ", INFO, str(oProductDetails.oLicense.uLicensedInstances), \
-          NORMAL, " systems until ", INFO, str(oProductDetails.oLicense.oEndDate), NORMAL, ".");
-    else:
-      assert oProductDetails.bInTrialPeriod, \
-          "This code should not be reached";
-      oConsole.fPrint( \
-          NORMAL, " " * (uIndent + 2), WARNING, "* In trial period.");
-  fPrintProductDetails(oMainProductDetails);
+    oConsole.fPrint(
+      " " * uIndent,
+      INFO, oProductDetails.sProductName,
+      NORMAL, " version ", INFO, str(oProductDetails.oProductVersion), NORMAL, ".",
+    );
+    if oProductDetails.oLatestProductVersion:
+      if oProductDetails.bVersionIsPreRelease:
+        oConsole.fPrint(
+          " " * uIndent, DIM, u"\u2514\u2500",
+          NORMAL, " You are running a ", HILITE, "pre-release", NORMAL, " version:",
+          " the latest release version is ", INFO, str(oProductDetails.oLatestProductVersion), NORMAL, ".",
+        );
+      elif not oProductDetails.bVersionIsUpToDate:
+        oConsole.fPrint(
+          " " * uIndent, DIM, u"\u2514\u2500",
+          NORMAL, "Version ", HILITE, str(oProductDetails.oLatestProductVersion), NORMAL,
+          " is available at ", HILITE, oProductDetails.oRepository.sLatestVersionURL, NORMAL, ".",
+        );
+  fPrintProductDetails(oRSProductDetails);
   oConsole.fPrint("This product depends on the following modules:");
-  for oProductDetails in oMainProductDetails.faoGetAllLoadedProductDetails():
-    if oProductDetails != oMainProductDetails:
+  for oProductDetails in oRSProductDetails.faoGetAllLoadedProductDetails():
+    if oProductDetails != oRSProductDetails:
       fPrintProductDetails(oProductDetails, uIndent = 2);
 
 def fMain(asArgs):
-  asLicenseErrors = oMainProductDetails.fasGetLicenseErrors();
+  asLicenseErrors = oRSProductDetails.fasGetLicenseErrors();
   if asLicenseErrors:
     oConsole.fPrint(ERROR, "- You do not have a valid license to use this software:");
     for sLicenseError in asLicenseErrors:
       oConsole.fPrint(NORMAL, "  ", ERROR_INFO, sLicenseError);
     return -1;
-  asLicenseWarnings = oMainProductDetails.fasGetLicenseWarnings();
+  asLicenseWarnings = oRSProductDetails.fasGetLicenseWarnings();
   if asLicenseWarnings:
     oConsole.fPrint(WARNING, "Warning:");
     for sLicenseWarning in asLicenseWarnings:
