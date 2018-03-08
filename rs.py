@@ -1,5 +1,13 @@
 import json, math, multiprocessing, os, re, sys;
 
+# Running this script will return an exit code, which translates as such:
+# 0 = executed successfully, no matches found.
+# 1 = executed successfully, matches found.
+# 2 = bad arguments
+# 3 = internal error
+# 4 = not used
+# 5 = license error
+
 # Augment the search path: look in main folder, parent folder or "modules" child folder, in that order.
 sMainFolderPath = os.path.abspath(os.path.dirname(__file__));
 sParentFolderPath = os.path.normpath(os.path.join(sMainFolderPath, ".."));
@@ -41,6 +49,8 @@ mProductDetails.cProductDetails.foReadForModule(oConsole);
 
 from fasMultithreadedFileFinder import fasMultithreadedFileFinder;
 from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
+from fPrintUsageInformation import fPrintUsageInformation;
+from fPrintVersionInformation import fPrintVersionInformation;
 from mColors import *;
 from oConsole import oConsole;
 sComSpec = unicode(os.environ["COMSPEC"]);
@@ -90,137 +100,11 @@ def fRunCommand(asCommandTemplate, sFilePath, auLineNumbers):
   );
   oProcess.fbWait();
 
-def fShowHelp():
-  print """
-grep - Filter files by name or content using Regular Expressions.
-  
-Usage:
-  grep [[-c] /content/*] [-p /path/+] [-v] path* [options] [-- command]
-
-Where:
-  [-c] /content/    Files whose content does not match any of the regular
-                    expressions in this list are filtered out of the results.
-  -p /path/+        Files whose path does not match any of the regular
-                    expressions in this list are filtered out of the results.
-  path*             Optional names of files/folders to search in.
-  -- command        Execute specified command for all files that have not been
-                    filtered out. The command can contain the following
-                    variables:
-                      %d - the drive on which the file was found.
-                      %p - the folder path in which the file was found.
-                      %n - the name of the file (excluding the extension).
-                      %x - the extension of the file (including the dot).
-                        The above arguments can be combined, as in %dp will
-                        give the folder's drive and path. and %nx will give
-                        the file's full name.
-                      %f - the full path of the file (== %dpnx).
-                      %l - the line number on which a match was found.
-                      Repeating %l gives you the next line number on which
-                      a match was found, or -1 if there are no more matches.
-
-Options:
-    -r, --recursive Include all files in subfolders of any selected folders in
-                    the search.
-    -w, --wait      Wait for user to press ENTER before terminating.
-    -u, --unicode   Remove all '\0' chars from the file before scanning to
-                    convert utf-16 Unicode encoded characters back to ASCII.
-    -v, --verbose   Output the file names of all files that could not be
-                    scanned, including an error message that indicates why.
-    -q, --quiet     Does not output the names of the files that matched. Useful
-                    in combination with "--", if you only want to execute the
-                    command and are not interested in the file names.
-    -l N, --lines N Show N lines of the file's content around each match.
-    --version       Show version and license information.
-Notes:
-  - Regular expressions start and end with a slash "/" and can optionally have
-    an "i" (case Insensitive) and/or "m" (Multi-line) suffix.
-  - By specifying "?" instead of any regular expression on the command line, the
-    user will be asked to enter a regular expression manually.
-  - By specifying "-" instead of any regular expression on the command line, no
-    regular expression will be added to the specific list.
-
-Examples:
-  grep /T+/ -p /P+/ C:\\ -r
-    Scan for files in the root of the C: drive and all its sub-folders. Select 
-    all files which' path contains a sequence of 1 or more "P"-s. Search the
-    content of the selected files for a sequence of 1 or more "A"-s. Output
-    the paths of the files that match and the line number(s) on which the match
-    was found.
-  grep -p /P+/i C:\\ -r
-    Scan for files in the root of the C: drive and all its sub-folders. Select 
-    all files which' path contains a sequence of 1 or more "p"-s (both upper-
-    and lowercase). Output the paths of the files that match.
-
-  grep /class\\s+\\w+/m -p /\\.c(pp|xx)$/i -- notepad "%f"
-    Select all files in the current folder. Filter out all files which do not
-    have a ".cpp" or ".cxx" extension. Filter out all files which do not have a
-    C++ class definitions. Output the paths of the files that were not filtered
-    out and open them using Notepad.
-
-  grep ? -p ? "C:\\dev\\my project"
-    Ask the user to enter a content regular expressions and a name regular
-    expression. Select all files in the "C:\\dev\\my project" folder. Filter out
-    all files that do not match the content regular expression, if one was
-    entered. Then filter out all files that do not match the name regular
-    expression, if one was entered. Output the paths of the files that were not
-    filtered out.
-
-""".strip("\n").replace("\n", "\r\n");
-
 def frRegExp(sRegExp, sFlags):
   return re.compile(unicode(sRegExp), sum([
     {"i": re.I, "l":re.L, "m":re.M, "s": re.S, "u": re.U, "x": re.X}[sFlag]
     for sFlag in sFlags
   ]));
-
-def fShowVersionAndLicenseInformation():
-  # Check for updates...
-  uTotalProducts = len(oRSProductDetails.doProductDetails_by_sName);
-  uCounter = 0;
-  bErrorHeaderShown = False;
-  for oProductDetails in oRSProductDetails.doProductDetails_by_sName.values():
-    oConsole.fProgressBar(
-      uCounter * 1.0 / uTotalProducts,
-      "* Checking %s for updates..." % oProductDetails.sProductName,
-    );
-    try:
-      oProductDetails.oLatestProductDetailsFromRepository;
-    except Exception as oException:
-      if not bErrorHeaderShown:
-        oConsole.fPrint(
-          ERROR, u"Error:",
-        );
-        bErrorHeaderShown = True;
-      oConsole.fPrint(
-        ERROR, u"  - Version check for ", ERROR_INFO, oProductDetails.sProductName,
-        ERROR, " failed: ", ERROR_INFO, str(oException),
-      );
-    uCounter+=1;
-  # Show version information:
-  def fPrintProductDetails(oProductDetails, uIndent = 0):
-    oConsole.fPrint(
-      " " * uIndent,
-      INFO, oProductDetails.sProductName,
-      NORMAL, " version ", INFO, str(oProductDetails.oProductVersion), NORMAL, ".",
-    );
-    if oProductDetails.oLatestProductVersion:
-      if oProductDetails.bVersionIsPreRelease:
-        oConsole.fPrint(
-          " " * uIndent, DIM, u"\u2514\u2500",
-          NORMAL, " You are running a ", HILITE, "pre-release", NORMAL, " version:",
-          " the latest release version is ", INFO, str(oProductDetails.oLatestProductVersion), NORMAL, ".",
-        );
-      elif not oProductDetails.bVersionIsUpToDate:
-        oConsole.fPrint(
-          " " * uIndent, DIM, u"\u2514\u2500",
-          NORMAL, "Version ", HILITE, str(oProductDetails.oLatestProductVersion), NORMAL,
-          " is available at ", HILITE, oProductDetails.oRepository.sLatestVersionURL, NORMAL, ".",
-        );
-  fPrintProductDetails(oRSProductDetails);
-  oConsole.fPrint("This product depends on the following modules:");
-  for oProductDetails in oRSProductDetails.faoGetAllLoadedProductDetails():
-    if oProductDetails != oRSProductDetails:
-      fPrintProductDetails(oProductDetails, uIndent = 2);
 
 def fMain(asArgs):
   asLicenseErrors = oRSProductDetails.fasGetLicenseErrors();
@@ -228,7 +112,7 @@ def fMain(asArgs):
     oConsole.fPrint(ERROR, "- You do not have a valid license to use this software:");
     for sLicenseError in asLicenseErrors:
       oConsole.fPrint(NORMAL, "  ", ERROR_INFO, sLicenseError);
-    return -1;
+    os._exit(5);
   asLicenseWarnings = oRSProductDetails.fasGetLicenseWarnings();
   if asLicenseWarnings:
     oConsole.fPrint(WARNING, "Warning:");
@@ -259,7 +143,7 @@ def fMain(asArgs):
         uConvertTabsToSpaces = long(sArg);
       except Exception as oException:
         oConsole.fPrint(ERROR, "Invalid tabs length ", ERROR_INFO, sArg, ERROR, ": ", ERROR_INFO, oException.message, ERROR, ".");
-        return -1;
+        os._exit(2);
       continue;
     if bArgIsNumberOfRelevantLinesAroundMatch:
       # valid formats : "C" "-B", "-B+A" "+A"
@@ -268,7 +152,7 @@ def fMain(asArgs):
         oConsole.fPrint(ERROR, "Invalid lines range ", ERROR_INFO, sArg, ERROR, ".");
         oConsole.fPrint("Try ", INFO, "N", NORMAL, ", ", INFO, "-N", NORMAL, ", ", INFO, "-N+N", NORMAL, ", or ", INFO, "+N", NORMAL, ".");
         oConsole.fPrint("Where each N is an integer. '-' prefix indicates before, '+' prefix indices after the match.");
-        return -1;
+        os._exit(2);
       suBeforeAndAfer, suBefore, suAfter = oBeforeAfterMatch.groups();
       if suBeforeAndAfer:
         uNumberOfRelevantLinesBeforeMatch = uNumberOfRelevantLinesAfterMatch = long(suBeforeAndAfer);
@@ -289,7 +173,7 @@ def fMain(asArgs):
         oConsole.fPrint(ERROR, "Invalid regular expressions ", ERROR_INFO, sNegative or "", ERROR, "/", ERROR_INFO, \
             sRegExp, ERROR, "/", ERROR_INFO, sFlags);
         oConsole.fPrint("     ", ERROR_INFO, oException.message, ERROR, ".");
-        return -1;
+        os._exit(2);
       else:
         if bRegExpArgsAreForPath:
           if sNegative:
@@ -339,8 +223,8 @@ def fMain(asArgs):
       # allow you to do -p /path_reg_exp/ -r /content_reg_exp/
       bRegExpArgsAreForPath = False;
       if sArg in ["-?", "-h", "--help", "/?", "/h", "/help"]:
-        fShowHelp();
-        return 0;
+        fPrintUsageInformation();
+        os._exit(0);
       elif sArg in ["-r", "/r", "--recursive", "/recursive"]:
         bRecursive = True;
       elif sArg in ["-v", "/v", "--verbose", "/verbose"]:
@@ -352,8 +236,8 @@ def fMain(asArgs):
       elif sArg in ["-q", "/q", "--quiet", "/quiet"]:
         bQuiet = True;
       elif sArg in ["--version", "/version"]:
-        fShowVersionAndLicenseInformation();
-        return 0;
+        fPrintVersionInformation();
+        os._exit(0);
       elif sArg in ["-p", "--path", "/p", "/path"]:
         bRegExpArgsAreForPath = True;
       elif sArg in ["-c", "--content", "/c", "/content"]:
@@ -370,23 +254,23 @@ def fMain(asArgs):
         asFolderPaths.add(sArg);
       else:
         oConsole.fPrint(ERROR, "Unknown argument: ", ERROR_INFO, sArg, ERROR, ".");
-        return -1;
+        os._exit(2);
   
   # Check arguments and set some defaults
   if bArgsAreCommandTemplate and not asCommandTemplate:
     asCommandTemplate = [u"uedit64.exe", u"%f/%l"];
   if not arContentRegExps and not arNegativeContentRegExps and not arPathRegExps and not arNegativePathRegExps:
     oConsole.fPrint(ERROR, "Missing regular expression");
-    return -1;
+    os._exit(2);
   if not asFilePaths and not asFolderPaths:
     asFolderPaths.add(os.getcwdu());
   if bRecursive:
     if not asFolderPaths:
       oConsole.fPrint(ERROR, "No folders to scan recursively");
-      return -1;
+      os._exit(2);
   if bArgIsNumberOfRelevantLinesAroundMatch:
     oConsole.fPrint(ERROR, "missing number of matched lines to show");
-    return -1;
+    os._exit(2);
   
   # Show argument values in verbose mode
   if bVerbose:
@@ -430,13 +314,13 @@ def fMain(asArgs):
       oConsole.fPrint(ERROR, "No files found that matched any of the regular expressions");
     else:
       oConsole.fPrint(ERROR, "No files found");
-    uResult = 1;
+    uResult = 0;
   elif not arContentRegExps and not arNegativeContentRegExps:
     for sFilePath in sorted(asFilePaths):
       oConsole.fPrint(sFilePath); # Strip "\\?\"
       if bArgsAreCommandTemplate:
         fRunCommand(asCommandTemplate, sFilePath, [0]);
-    uResult = len(asFilePaths) == 0 and 1 or 0;
+    uResult = len(asFilePaths) > 0 and 1 or 0;
   else:
     oContentMatchingResults = foMultithreadedFileContentMatcher(uMaxThreads, asFilePaths, arContentRegExps, arNegativeContentRegExps, bUnicode, uNumberOfRelevantLinesBeforeMatch, uNumberOfRelevantLinesAfterMatch);
     if bVerbose:
@@ -444,9 +328,9 @@ def fMain(asArgs):
         oConsole.fPrint(DIM, "- ", sFilePath);
     if not oContentMatchingResults.dMatched_auLineNumbers_by_sFilePath:
       oConsole.fPrint(ERROR, "No match found.");
-      uResult = 1;
-    else:
       uResult = 0;
+    else:
+      uResult = 1;
       bFirst = True;
       bOutputRelevantLines = uNumberOfRelevantLinesBeforeMatch is not None or uNumberOfRelevantLinesAfterMatch is not None;
       for sFilePath in sorted(oContentMatchingResults.dMatched_auLineNumbers_by_sFilePath.keys()):
@@ -511,4 +395,4 @@ def fMain(asArgs):
   return uResult;
 
 if __name__ == "__main__":
-  sys.exit(fMain(sys.argv[1:]));
+  fMain(sys.argv[1:]);
