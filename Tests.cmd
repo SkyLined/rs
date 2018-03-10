@@ -1,0 +1,14 @@
+@ECHO OFF
+rs --version
+IF ERRORLEVEL 1 GOTO :ERROR
+rs -r -p /\\Tests\.cmd$/ -c /@@@MARKER@@@/ -- ECHO SUCCESS
+IF ERRORLEVEL 2 GOTO :ERROR
+IF NOT ERRORLEVEL 1 (
+  EXIT /B 1
+)
+
+EXIT /B 0
+
+:ERROR
+  ECHO   - Error %ERRORLEVEL%.
+  EXIT /B %ERRORLEVEL%
