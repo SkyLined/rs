@@ -13,5 +13,7 @@
   }, 
   "sLicenseServerURL": "https://license.skylined.nl/fdxGetLicenseCheckResult.php", 
   "sProductName": "rs", 
+  "sProductAuthor": "SkyLined", 
+  "sProductURL": "https://github.com/SkyLined/rs", 
   "sTrialPeriodDuration": "1m"
 }

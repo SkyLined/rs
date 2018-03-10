@@ -39,20 +39,15 @@ for (sModuleName, sURL) in {
 # Restore the search path
 sys.path = asOriginalSysPath;
 
-# Read product details for rs and all modules it uses.
-import mFileSystem, mProductDetails, mWindowsAPI, oConsole;
-oRSProductDetails = mProductDetails.cProductDetails.foReadForMainModule();
-mProductDetails.cProductDetails.foReadForModule(mFileSystem);
-mProductDetails.cProductDetails.foReadForModule(mProductDetails);
-mProductDetails.cProductDetails.foReadForModule(mWindowsAPI);
-mProductDetails.cProductDetails.foReadForModule(oConsole);
-
 from fasMultithreadedFileFinder import fasMultithreadedFileFinder;
 from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
 from fPrintUsageInformation import fPrintUsageInformation;
 from fPrintVersionInformation import fPrintVersionInformation;
 from mColors import *;
 from oConsole import oConsole;
+import mProductDetails;
+import mWindowsAPI;
+
 sComSpec = unicode(os.environ["COMSPEC"]);
 uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
 
@@ -107,17 +102,6 @@ def frRegExp(sRegExp, sFlags):
   ]));
 
 def fMain(asArgs):
-  asLicenseErrors = oRSProductDetails.fasGetLicenseErrors();
-  if asLicenseErrors:
-    oConsole.fPrint(ERROR, "- You do not have a valid license to use this software:");
-    for sLicenseError in asLicenseErrors:
-      oConsole.fPrint(NORMAL, "  ", ERROR_INFO, sLicenseError);
-    os._exit(5);
-  asLicenseWarnings = oRSProductDetails.fasGetLicenseWarnings();
-  if asLicenseWarnings:
-    oConsole.fPrint(WARNING, "Warning:");
-    for sLicenseWarning in asLicenseWarnings:
-      oConsole.fPrint(WARNING, "  * ", sLicenseWarning);
   asFilePaths = set();
   asFolderPaths = set();
   arContentRegExps = [];
@@ -271,6 +255,29 @@ def fMain(asArgs):
   if bArgIsNumberOfRelevantLinesAroundMatch:
     oConsole.fPrint(ERROR, "missing number of matched lines to show");
     os._exit(2);
+  
+  # Check license
+  oLicenseCollection = mProductDetails.foGetLicenseCollectionForAllLoadedProducts();
+  (asLicenseErrors, asLicenseWarnings) = oLicenseCollection.ftasGetLicenseErrorsAndWarnings();
+  if asLicenseErrors:
+    oConsole.fLock();
+    try:
+      oConsole.fPrint(ERROR, u"\u250C\u2500", ERROR_INFO, " Software license error ", ERROR, sPadding = u"\u2500");
+      for sLicenseError in asLicenseErrors:
+        oConsole.fPrint(ERROR, u"\u2502 ", ERROR_INFO, sLicenseError);
+      oConsole.fPrint(ERROR, u"\u2514", sPadding = u"\u2500");
+    finally:
+      oConsole.fUnlock();
+    os._exit(5);
+  if asLicenseWarnings:
+    oConsole.fLock();
+    try:
+      oConsole.fPrint(WARNING, u"\u250C\u2500", WARNING_INFO, " Software license warning ", WARNING, sPadding = u"\u2500");
+      for sLicenseWarning in asLicenseWarnings:
+        oConsole.fPrint(WARNING, u"\u2502 ", WARNING_INFO, sLicenseWarning);
+      oConsole.fPrint(WARNING, u"\u2514", sPadding = u"\u2500");
+    finally:
+      oConsole.fUnlock();
   
   # Show argument values in verbose mode
   if bVerbose:
