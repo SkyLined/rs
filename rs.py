@@ -399,7 +399,7 @@ def fMain(asArgs):
         oConsole.fPrint("Scanned %d files, %s bytes." % (len(asFilePaths), fsBytes(oContentMatchingResults.uScannedBytes)));
   if bWait:
     raw_input();
-  return uResult;
+  os._exit(uResult);
 
 if __name__ == "__main__":
   fMain(sys.argv[1:]);
