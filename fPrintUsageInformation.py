@@ -97,7 +97,7 @@ def fPrintUsageInformation(asApplicationKeywords):
     oConsole.fPrint("    definitions. Output the path and name of the matched file(s) and the line");
     oConsole.fPrint("    before and up to 16 lines after each match.");
     oConsole.fPrint();
-    oConsole.fPrint("rs will set it errorlevel/exit code to one of the following values:");
+    oConsole.fPrint(HILITE, "Exit codes:");
     oConsole.fPrint("  ", INFO, "0", NORMAL," = rs did not match any files.");
     oConsole.fPrint("  ", INFO, "1", NORMAL," = rs matched one or more files.");
     oConsole.fPrint("  ", ERROR_INFO, "2", NORMAL, " = rs was unable to parse the command-line arguments provided.");
