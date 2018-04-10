@@ -6,7 +6,7 @@
   ], 
   "oProductVersion": "2018-03-10 21:41", 
   "oRepository": {
-    "sBranch": "master", 
+    "sBranch": "dev", 
     "sRepositoryName": "rs", 
     "sType": "GitHub", 
     "sUserName": "SkyLined"
