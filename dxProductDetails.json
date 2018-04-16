@@ -4,14 +4,14 @@
     "mProductDetails", 
     "mWindowsAPI"
   ], 
-  "oProductVersion": "2018-03-10 21:41", 
+  "oProductVersion": "2018-04-16 11:04", 
   "oRepository": {
     "sBranch": "master", 
     "sRepositoryName": "rs", 
     "sType": "GitHub", 
     "sUserName": "SkyLined"
   }, 
-  "sLicenseServerURL": "https://license.skylined.nl/fdxGetLicenseCheckResult.php", 
+  "sLicenseServerURL": "https://license.skylined.nl/dxCheckLicense.php", 
   "sProductAuthor": "SkyLined", 
   "sProductName": "rs", 
   "sProductURL": "https://github.com/SkyLined/rs", 
