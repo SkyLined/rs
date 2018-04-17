@@ -220,7 +220,11 @@ def fMain(asArgs):
       elif sArg in ["-q", "/q", "--quiet", "/quiet"]:
         bQuiet = True;
       elif sArg in ["--version", "/version"]:
-        fPrintVersionInformation();
+        fPrintVersionInformation(
+          bCheckForUpdates = True,
+          bCheckAndShowLicenses = True,
+          bShowInstallationFolders = True,
+        );
         os._exit(0);
       elif sArg in ["-p", "--path", "/p", "/path"]:
         bRegExpArgsAreForPath = True;
