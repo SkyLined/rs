@@ -1,4 +1,4 @@
-import json, math, multiprocessing, os, re, sys;
+import json, math, multiprocessing, os, platform, re, sys;
 
 # Running this script will return an exit code, which translates as such:
 # 0 = executed successfully, no matches found.
@@ -102,6 +102,20 @@ def frRegExp(sRegExp, sFlags):
   ]));
 
 def fMain(asArgs):
+  # Make sure the Python binary is up to date; we don't want our users to unknowingly run outdated software as this is
+  # likely to cause unexpected issues.
+  asVersionComponent = platform.python_version().split(".");
+  auExpectedVersionComponent = [2, 7, 14];
+  for uIndex in xrange(3):
+    uVersionComponent = long(asVersionComponent[uIndex]);
+    if uVersionComponent < auExpectedVersionComponent[uIndex]:
+      oConsole.fPrint(ERROR, "You are running an old version of Python. Please update before using BugId.");
+      oConsole.fCleanup();
+      os._exit(3);
+    elif uVersionComponent > auExpectedVersionComponent[uIndex]:
+      oConsole.fPrint(WARNING, "You are running a version of Python on which this version of BugId has not been tested.");
+      break;
+  
   asFilePaths = set();
   asFolderPaths = set();
   arContentRegExps = [];
