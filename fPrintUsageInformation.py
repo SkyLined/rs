@@ -1,7 +1,7 @@
 from oConsole import oConsole;
 from mColors import *;
 
-def fPrintUsageInformation(asApplicationKeywords):
+def fPrintUsageInformation():
   oConsole.fLock();
   try:
     oConsole.fPrint(HILITE,"Usage:");

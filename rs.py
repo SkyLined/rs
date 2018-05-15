@@ -109,11 +109,11 @@ def fMain(asArgs):
   for uIndex in xrange(3):
     uVersionComponent = long(asVersionComponent[uIndex]);
     if uVersionComponent < auExpectedVersionComponent[uIndex]:
-      oConsole.fPrint(ERROR, "You are running an old version of Python. Please update before using BugId.");
+      oConsole.fPrint(ERROR, "You are running an old version of Python. Please update before using rs.");
       oConsole.fCleanup();
       os._exit(3);
     elif uVersionComponent > auExpectedVersionComponent[uIndex]:
-      oConsole.fPrint(WARNING, "You are running a version of Python on which this version of BugId has not been tested.");
+      oConsole.fPrint(WARNING, "You are running a version of Python on which this version of rs has not been tested.");
       break;
   
   asFilePaths = set();
