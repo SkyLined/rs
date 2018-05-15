@@ -1,7 +1,7 @@
 @ECHO OFF
-rs --version
+CALL "%~dp0rs.cmd" --version
 IF ERRORLEVEL 1 GOTO :ERROR
-rs -r -p /\\Tests\.cmd$/ -c /@@@MARKER@@@/ -- ECHO SUCCESS
+CALL "%~dp0rs.cmd"  -r -p /\\Tests\.cmd$/ -c /@@@MARKER@@@/ -- ECHO SUCCESS >nul
 IF ERRORLEVEL 2 GOTO :ERROR
 IF NOT ERRORLEVEL 1 (
   EXIT /B 1
