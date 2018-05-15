@@ -1,5 +1,14 @@
 import json, math, multiprocessing, os, platform, re, sys;
 
+"""
+          dS'                          dS'                                      
+         dS' .cid ,dSSc  ,dS"*sd      dS'   /R/egular expression /S/earch       
+        dS'    SS;' '*'  YS(   Y     dS'                                        
+       dS'     SS`        `*%s,     dS'                                         
+      dS'      SS        b   )Sb   dS'                                          
+     dS'     .dSSb.      P*ssSP'  dS'                                           
+    dS'                          dS'                                            
+""";
 # Running this script will return an exit code, which translates as such:
 # 0 = executed successfully, no matches found.
 # 1 = executed successfully, matches found.
@@ -41,6 +50,7 @@ sys.path = asOriginalSysPath;
 
 from fasMultithreadedFileFinder import fasMultithreadedFileFinder;
 from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
+from fPrintLogo import fPrintLogo;
 from fPrintUsageInformation import fPrintUsageInformation;
 from fPrintVersionInformation import fPrintVersionInformation;
 from mColors import *;
@@ -221,6 +231,7 @@ def fMain(asArgs):
       # allow you to do -p /path_reg_exp/ -r /content_reg_exp/
       bRegExpArgsAreForPath = False;
       if sArg in ["-?", "-h", "--help", "/?", "/h", "/help"]:
+        fPrintLogo();
         fPrintUsageInformation();
         os._exit(0);
       elif sArg in ["-r", "/r", "--recursive", "/recursive"]:
