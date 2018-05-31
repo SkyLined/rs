@@ -24,12 +24,12 @@ sModulesFolderPath = os.path.join(sMainFolderPath, "modules");
 asOriginalSysPath = sys.path[:];
 sys.path = [sParentFolderPath, sModulesFolderPath] + asOriginalSysPath;
 
-for (sModuleName, sURL) in {
-  "mFileSystem": "https://github.com/SkyLined/mFileSystem/",
-  "mProductDetails": "https://github.com/SkyLined/mProductDetails/",
-  "mWindowsAPI": "https://github.com/SkyLined/mWindowsAPI/",
-  "oConsole": "https://github.com/SkyLined/oConsole/",
-}.items():
+for (sModuleName, sDownloadURL) in [
+  ("mFileSystem", "https://github.com/SkyLined/mFileSystem/"),
+  ("mProductDetails", "https://github.com/SkyLined/mProductDetails/"),
+  ("mWindowsAPI", "https://github.com/SkyLined/mWindowsAPI/"),
+  ("oConsole", "https://github.com/SkyLined/oConsole/"),
+]:
   try:
     __import__(sModuleName, globals(), locals(), [], -1);
   except ImportError, oError:
@@ -38,7 +38,7 @@ for (sModuleName, sURL) in {
       print "%s depends on %s which you can download at:" % (os.path.filename(__file__), sModuleName);
       print "    %s" % sDownloadURL;
       print "After downloading, please save the code in this folder:";
-      print "    %s" % os.path.join(sModuleFolderPath, sModuleName);
+      print "    %s" % os.path.join(sModulesFolderPath, sModuleName);
       print " - or -";
       print "    %s" % os.path.join(sParentFolderPath, sModuleName);
       print "Once you have completed these steps, please try again.";
