@@ -58,6 +58,9 @@ Options:
     Note: Repeating %l gives you the next line number on which a match was
     found, or -1 if there are no more matches: %l %l %l will be replaced with
     the line numbers of the first three matches
+      %1, %2, %3... - the first path match' sub-matches.
+    Note: You can use %1 - %9 to insert parts of the first match against the
+    file path. This can be useful to mass-rename files.
 
 Regular expression syntax:
   [!]/pattern/[flags]
