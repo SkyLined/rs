@@ -48,7 +48,7 @@ for (sModuleName, sDownloadURL) in [
 # Restore the search path
 sys.path = asOriginalSysPath;
 
-from fasMultithreadedFileFinder import fasMultithreadedFileFinder;
+from fdoMultithreadedFilePathMatcher import fdoMultithreadedFilePathMatcher;
 from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
 from fPrintLogo import fPrintLogo;
 from fPrintUsageInformation import fPrintUsageInformation;
@@ -71,9 +71,9 @@ def fsBytes(nValue):
   sValue = str(math.floor(nValue * 100) / 100.0);
   return sValue + " " + asUnits[uUnitIndex];
 
-def fRunCommand(asCommandTemplate, sFilePath, auLineNumbers):
+def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
   asCommandTemplate = [unicode(s) for s in asCommandTemplate];
-  auLineNumbers = auLineNumbers[:];
+  uCurrentLineNumberIndex = 0;
   sDrivePath, sNameExtension = sFilePath.rsplit(u"\\", 1);
   if u":" in sDrivePath:
     sDrive, sPath = sDrivePath.split(u":", 1);
@@ -89,14 +89,22 @@ def fRunCommand(asCommandTemplate, sFilePath, auLineNumbers):
     sName, sExtension = sNameExtension, u"";
   def fsSubstitudePathTemplates(oMatch):
     sChars = oMatch.group(1);
-    if sChars == u"l": return len(auLineNumbers) > 0 and u"%d" % auLineNumbers.pop(0) or u"-1";
-    if u"f" in sChars: return sFilePath;
+    if sChars == u"l":
+      if uCurrentLineNumberIndex < len(auLineNumbers):
+        uCurrentLineNumberIndex += 1;
+        return u"%d" % auLineNumbers[uCurrentLineNumberIndex - 1];
+      return u"-1";
+    if u"f" in sChars:
+      
+      return sFilePath;
+    if sChars in u"0123456789":
+      return unicode(oPathMatch.group(long(sChars)));
     sDrivePath = (u"d" in sChars and sDrive or u"") + (u"p" in sChars and sPath or u"");
     sNameExtension = (u"n" in sChars and sName or u"") + (u"x" in sChars and sExtension or u"");
     return u"\\".join([s for s in [sDrivePath, sNameExtension] if s]);
   
   asCommandLine = [
-    re.sub(u"%(f|l|[dpnx]+)", fsSubstitudePathTemplates, sTemplate)
+    re.sub(u"%(f|l|[0-9]|[dpnx]+)", fsSubstitudePathTemplates, sTemplate)
     for sTemplate in asCommandTemplate
   ];
   oProcess = mWindowsAPI.cConsoleProcess.foCreateForBinaryPathAndArguments(
