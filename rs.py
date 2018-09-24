@@ -110,6 +110,8 @@ def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
   oProcess = mWindowsAPI.cConsoleProcess.foCreateForBinaryPathAndArguments(
     sBinaryPath = sComSpec,
     asArguments = [u"/C"] + asCommandLine,
+    bRedirectStdOut = False,
+    bRedirectStdErr = False,
   );
   oProcess.fbWait();
 
