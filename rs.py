@@ -48,6 +48,7 @@ for (sModuleName, sDownloadURL) in [
 # Restore the search path
 sys.path = asOriginalSysPath;
 
+from fCheckPythonVersion import fCheckPythonVersion;
 from fdoMultithreadedFilePathMatcher import fdoMultithreadedFilePathMatcher;
 from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
 from fPrintLogo import fPrintLogo;
@@ -57,6 +58,8 @@ from mColors import *;
 from oConsole import oConsole;
 import mProductDetails;
 import mWindowsAPI;
+
+asTestedPythonVersions = ["2.7.14", "2.7.15"];
 
 sComSpec = unicode(os.environ["COMSPEC"]);
 uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
@@ -124,58 +127,9 @@ def frRegExp(sRegExp, sFlags):
 def fMain(asArgs):
   # Make sure the Python binary is up to date; we don't want our users to unknowingly run outdated software as this is
   # likely to cause unexpected issues.
-  sPythonVersion = platform.python_version();
-  if not sPythonVersion.startswith("2."):
-    oConsole.fPrint(ERROR, "Error: rs requires ", ERROR_INFO, "Python 2", ERROR, ".");
-    os._exit(3);
-  nPythonSubVersion = float(sPythonVersion[2:]);
-  anTestedPythonSubVersions = sorted([7.14, 7.15]);
-  if nPythonSubVersion not in anTestedPythonSubVersions:
-    oConsole.fLock();
-    try:
-      asTestedPythonVersionsOutput = [WARNING_INFO, "2.%1.2f" % anTestedPythonSubVersions.pop(0), WARNING];
-      if len(anTestedPythonSubVersions) == 1:
-        asTestedPythonVersionsOutput.extend([" and ", WARNING_INFO, "2.%1.2f" % anTestedPythonSubVersions[0], WARNING]);
-      elif len(anTestedPythonSubVersions) > 1:
-        for uIndex in xrange(len(asTestedPythonVersionsOutput) - 1):
-          asTestedPythonVersionsOutput.extend([", ", WARNING_INFO, "2.%1.2f" % anTestedPythonSubVersions[uIndex], WARNING]);
-        asTestedPythonVersionsOutput.extend([", and ", WARNING_INFO, "2.%1.2f" % anTestedPythonSubVersions[-1], WARNING]);
-      asTestedPythonVersionsOutput.append(".");
-      oConsole.fPrint(WARNING, u"\u250C\u2500", WARNING_INFO, " Warning ", WARNING, sPadding = u"\u2500");
-      oConsole.fPrint(WARNING, u"\u2502 You are running a version of Python (", WARNING_INFO, sPythonVersion, WARNING,
-          ") on which this version of");
-      oConsole.fPrint(WARNING, u"\u2502 rs has not been tested.");
-      oConsole.fPrint(WARNING, u"\u2502 rs has been designed to work well with the following Python versions:");
-      oConsole.fPrint(WARNING, u"\u2502   ", *asTestedPythonVersionsOutput);
-      if nPythonSubVersion < anTestedPythonSubVersions[0]:
-        oConsole.fPrint(WARNING, u"\u2502 Please update Python to the latest version.");
-      else:
-        assert nPythonSubVersion > anTestedPythonSubVersions[-1];
-        oConsole.fPrint(WARNING, u"\u2502 Please report this so rs can be made compatible at:");
-        oConsole.fPrint(WARNING, u"\u2502   ", WARNING_INFO | UNDERLINE, "https://github.com/SkyLined/BugId/issues/new");
-      oConsole.fPrint(WARNING, u"\u2514", sPadding = u"\u2500");
-    finally:
-      oConsole.fUnlock();
-  elif nPythonSubVersion != anTestedPythonSubVersions[-1]:
-    oConsole.fPrint(WARNING, u"\u250C\u2500", WARNING_INFO, " Warning ", WARNING, sPadding = u"\u2500");
-    oConsole.fPrint(WARNING, u"\u2502 You are running an outdated version of Python (", WARNING_INFO,
-        sPythonVersion, WARNING, ").");
-    oConsole.fPrint(WARNING, u"\u2502 Please update Python to the latest version.");
-    oConsole.fPrint(WARNING, u"\u2514", sPadding = u"\u2500");
-
-  asVersionComponent = platform.python_version().split(".");
-  auExpectedVersionComponent = [2, 7, 14];
-  for uIndex in xrange(3):
-    uVersionComponent = long(asVersionComponent[uIndex]);
-    if uVersionComponent < auExpectedVersionComponent[uIndex]:
-      oConsole.fPrint(ERROR, "You are running an old version of Python. Please update before using rs.");
-      oConsole.fCleanup();
-      os._exit(3);
-    elif uVersionComponent > auExpectedVersionComponent[uIndex]:
-      oConsole.fPrint(WARNING, "You are running a version of Python on which this version of rs has not been tested.");
-      break;
+  fCheckPythonVersion("rs", asTestedPythonVersions, "https://github.com/SkyLined/rs/issues/new")
   
-  asFilePaths = set();
+  doPathMatch_by_sSelectedFilePath = {};
   asFolderPaths = set();
   arContentRegExps = [];
   arNegativeContentRegExps = [];
@@ -311,7 +265,7 @@ def fMain(asArgs):
       elif sArg in ["--"]:
         bArgsAreCommandTemplate = True;
       elif os.path.isfile(sArg):
-        asFilePaths.add(sArg);
+        doPathMatch_by_sSelectedFilePath[sArg] = None; # User supplied; no regular expression match
       elif os.path.isdir(sArg):
         asFolderPaths.add(sArg);
       else:
@@ -324,7 +278,7 @@ def fMain(asArgs):
   if not arContentRegExps and not arNegativeContentRegExps and not arPathRegExps and not arNegativePathRegExps:
     oConsole.fPrint(ERROR, "Missing regular expression");
     os._exit(2);
-  if not asFilePaths and not asFolderPaths:
+  if not doPathMatch_by_sSelectedFilePath and not asFolderPaths:
     asFolderPaths.add(os.getcwdu());
   if bRecursive:
     if not asFolderPaths:
@@ -366,9 +320,9 @@ def fMain(asArgs):
     if bRecursive:
       oConsole.fPrint("+ Folders will be traversed recursively");
     
-    if asFilePaths:
+    if doPathMatch_by_sSelectedFilePath:
       oConsole.fPrint("+ Selected files:");
-      for sFilePath in asFilePaths:
+      for sFilePath in sorted(doPathMatch_by_sSelectedFilePath.keys()):
         oConsole.fPrint("  + ", sFilePath);
     if arPathRegExps or arNegativePathRegExps:
       oConsole.fPrint("+ File path regular expressions:");
@@ -393,21 +347,22 @@ def fMain(asArgs):
       oConsole.fPrint("+ After scanning is complete, wait for the user to press ENTER.");
   
   if asFolderPaths:
-    asFilePaths |= fasMultithreadedFileFinder(uMaxThreads, asFolderPaths, bRecursive, arPathRegExps, arNegativePathRegExps, bVerbose);
-  if not asFilePaths:
+    doPathMatch_by_sSelectedFilePath.update(fdoMultithreadedFilePathMatcher(uMaxThreads, asFolderPaths, bRecursive, arPathRegExps, arNegativePathRegExps, bVerbose));
+  if not doPathMatch_by_sSelectedFilePath:
     if arPathRegExps or arNegativePathRegExps:
-      oConsole.fPrint(ERROR, "No files found that matched any of the regular expressions");
+      oConsole.fPrint(ERROR, "No files found that matched any of the path regular expressions.");
     else:
-      oConsole.fPrint(ERROR, "No files found");
+      oConsole.fPrint(ERROR, "No files found.");
     uResult = 0;
   elif not arContentRegExps and not arNegativeContentRegExps:
-    for sFilePath in sorted(asFilePaths):
+    for sFilePath in sorted(doPathMatch_by_sSelectedFilePath.keys()):
       oConsole.fPrint(sFilePath); # Strip "\\?\"
       if bArgsAreCommandTemplate:
-        fRunCommand(asCommandTemplate, sFilePath, [0]);
-    uResult = len(asFilePaths) > 0 and 1 or 0;
+        oPathMatch = doPathMatch_by_sSelectedFilePath[sFilePath];
+        fRunCommand(asCommandTemplate, sFilePath, oPathMatch);
+    uResult = len(doPathMatch_by_sSelectedFilePath) > 0 and 1 or 0;
   else:
-    oContentMatchingResults = foMultithreadedFileContentMatcher(uMaxThreads, asFilePaths, arContentRegExps, arNegativeContentRegExps, bUnicode, uNumberOfRelevantLinesBeforeMatch, uNumberOfRelevantLinesAfterMatch);
+    oContentMatchingResults = foMultithreadedFileContentMatcher(uMaxThreads, doPathMatch_by_sSelectedFilePath.keys(), arContentRegExps, arNegativeContentRegExps, bUnicode, uNumberOfRelevantLinesBeforeMatch, uNumberOfRelevantLinesAfterMatch);
     if bVerbose:
       for sFilePath in oContentMatchingResults.asNotScannedFilePaths:
         oConsole.fPrint(DIM, "- ", sFilePath);
@@ -466,15 +421,16 @@ def fMain(asArgs):
               );
               uPreviousLineNumber = uRelevantLineNumber;
         if bArgsAreCommandTemplate:
-          fRunCommand(asCommandTemplate, sFilePath, auMatchedLineNumbers);
+          oPathMatch = doPathMatch_by_sSelectedFilePath[sFilePath];
+          fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auMatchedLineNumbers);
       if not bFirst:
         oConsole.fPrint();
     if bVerbose:
       if oContentMatchingResults.asNotScannedFilePaths > 0:
         oConsole.fPrint("Scanned %d/%d files, %s bytes." % (
-            len(asFilePaths) - len(oContentMatchingResults.asNotScannedFilePaths), len(asFilePaths), fsBytes(oContentMatchingResults.uScannedBytes)));
+            len(doPathMatch_by_sSelectedFilePath) - len(oContentMatchingResults.asNotScannedFilePaths), len(doPathMatch_by_sSelectedFilePath), fsBytes(oContentMatchingResults.uScannedBytes)));
       else:
-        oConsole.fPrint("Scanned %d files, %s bytes." % (len(asFilePaths), fsBytes(oContentMatchingResults.uScannedBytes)));
+        oConsole.fPrint("Scanned %d files, %s bytes." % (len(doPathMatch_by_sSelectedFilePath), fsBytes(oContentMatchingResults.uScannedBytes)));
   if bWait:
     raw_input();
   os._exit(uResult);
