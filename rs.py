@@ -367,7 +367,10 @@ def fMain(asArgs):
       for sFilePath in oContentMatchingResults.asNotScannedFilePaths:
         oConsole.fPrint(DIM, "- ", sFilePath);
     if not oContentMatchingResults.dMatched_auLineNumbers_by_sFilePath:
-      oConsole.fPrint(ERROR, "No match found.");
+      if arPathRegExps or arNegativePathRegExps:
+        oConsole.fPrint(ERROR, "No match found in %d files that matched the path regular expressions." % len(doPathMatch_by_sSelectedFilePath));
+      else:
+        oConsole.fPrint(ERROR, "No match found in any files.");
       uResult = 0;
     else:
       uResult = 1;
