@@ -55,6 +55,9 @@ def fPrintUsageInformation():
     oConsole.fPrint("    Note: Repeating %l gives you the next line number on which a match was");
     oConsole.fPrint("    found, or -1 if there are no more matches: %l %l %l will be replaced with");
     oConsole.fPrint("    the line numbers of the first three matches");
+    oConsole.fPrint("      ", INFO, "%1", NORMAL, ", ", INFO, "%2", NORMAL, ", ", INFO, "%3", NORMAL, "... - the first path match' sub-matches.");
+    oConsole.fPrint("    Note: You can use %1 - %9 to insert parts of the first match against the");
+    oConsole.fPrint("    file path. This can be useful to mass-rename files.");
     oConsole.fPrint();
     oConsole.fPrint(HILITE, "Regular expression syntax:");
     oConsole.fPrint("  [", INFO, "!", NORMAL, "]/", INFO, "pattern", NORMAL, "/[", INFO, "flags", NORMAL, "]");
