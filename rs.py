@@ -76,7 +76,6 @@ def fsBytes(nValue):
 
 def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
   asCommandTemplate = [unicode(s) for s in asCommandTemplate];
-  uCurrentLineNumberIndex = 0;
   sDrivePath, sNameExtension = sFilePath.rsplit(u"\\", 1);
   if u":" in sDrivePath:
     sDrive, sPath = sDrivePath.split(u":", 1);
@@ -92,22 +91,36 @@ def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
     sName, sExtension = sNameExtension, u"";
   def fsSubstitudePathTemplates(oMatch):
     sChars = oMatch.group(1);
+    if sChars == u"$":
+      return sChars;
     if sChars == u"l":
-      if uCurrentLineNumberIndex < len(auLineNumbers):
-        uCurrentLineNumberIndex += 1;
-        return u"%d" % auLineNumbers[uCurrentLineNumberIndex - 1];
+      if fsSubstitudePathTemplates.uCurrentLineNumberIndex < len(auLineNumbers):
+        fsSubstitudePathTemplates.uCurrentLineNumberIndex += 1;
+        return u"%d" % auLineNumbers[fsSubstitudePathTemplates.uCurrentLineNumberIndex - 1];
       return u"-1";
-    if u"f" in sChars:
-      
-      return sFilePath;
-    if sChars in u"0123456789":
-      return unicode(oPathMatch.group(long(sChars)));
-    sDrivePath = (u"d" in sChars and sDrive or u"") + (u"p" in sChars and sPath or u"");
-    sNameExtension = (u"n" in sChars and sName or u"") + (u"x" in sChars and sExtension or u"");
-    return u"\\".join([s for s in [sDrivePath, sNameExtension] if s]);
+    if sChars[0] in u"0123456789":
+      tsGroups = oPathMatch.groups();
+      uIndex = long(sChars);
+      return tsGroups[uIndex] if uIndex in tsGroups else "";
+    dsReplacements = {
+      u"f": sFilePath,
+      u"d": sDrive or u"",
+      u"p": sPath or u"",
+      u"n": sName or u"",
+      u"x": sExtension or u"",
+    };
+    sResult = u"";
+    sLastChar = "";
+    for sChar in sChars:
+      if sChar == u"n" and sLastChar == u"p":
+        sResult += u"\\"
+      sResult += dsReplacements[sChar];
+      sLastChar = sChar;
+    return sResult;
+  fsSubstitudePathTemplates.uCurrentLineNumberIndex = 0;
   
   asCommandLine = [
-    re.sub(u"%(f|l|[0-9]|[dpnx]+)", fsSubstitudePathTemplates, sTemplate)
+    re.sub(u"\$(\$|l|[0-9]+|[fdpnx]+)", fsSubstitudePathTemplates, sTemplate)
     for sTemplate in asCommandTemplate
   ];
   oProcess = mWindowsAPI.cConsoleProcess.foCreateForBinaryPathAndArguments(
@@ -274,7 +287,7 @@ def fMain(asArgs):
   
   # Check arguments and set some defaults
   if bArgsAreCommandTemplate and not asCommandTemplate:
-    asCommandTemplate = [u"uedit64.exe", u"%f/%l"];
+    asCommandTemplate = [u"uedit64.exe", u"$f/$l"];
   if not arContentRegExps and not arNegativeContentRegExps and not arPathRegExps and not arNegativePathRegExps:
     oConsole.fPrint(ERROR, "Missing regular expression");
     os._exit(2);
