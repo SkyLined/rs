@@ -90,7 +90,9 @@ def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
   else:
     sName, sExtension = sNameExtension, u"";
   def fsSubstitudePathTemplates(oMatch):
-    sChars = oMatch.group(1);
+    sEscape, sChars = oMatch.groups();
+    if sEscape:
+      return "{" + sChars + "}"; # do not replace.
     if sChars == u"$":
       return sChars;
     if sChars == u"l":
@@ -120,7 +122,8 @@ def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
   fsSubstitudePathTemplates.uCurrentLineNumberIndex = 0;
   
   asCommandLine = [
-    re.sub(u"\$(\$|l|[0-9]+|[fdpnx]+)", fsSubstitudePathTemplates, sTemplate)
+    # match everything "{" replacement "}", and note if "{" is escaped as "\\{"
+    re.sub(ur"(\\)?\{(l|[0-9]+|[fdpnx]+)\}", fsSubstitudePathTemplates, sTemplate)
     for sTemplate in asCommandTemplate
   ];
   oProcess = mWindowsAPI.cConsoleProcess.foCreateForBinaryPathAndArguments(
@@ -287,7 +290,10 @@ def fMain(asArgs):
   
   # Check arguments and set some defaults
   if bArgsAreCommandTemplate and not asCommandTemplate:
-    asCommandTemplate = [u"uedit64.exe", u"$f/$l"];
+    if not arContentRegExps:
+      asCommandTemplate = [u"uedit64.exe", u"{f}"];
+    else:
+      asCommandTemplate = [u"uedit64.exe", u"{f}/{l}"];
   if not arContentRegExps and not arNegativeContentRegExps and not arPathRegExps and not arNegativePathRegExps:
     oConsole.fPrint(ERROR, "Missing regular expression");
     os._exit(2);
