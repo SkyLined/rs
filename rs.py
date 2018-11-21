@@ -101,9 +101,11 @@ def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
         return u"%d" % auLineNumbers[fsSubstitudePathTemplates.uCurrentLineNumberIndex - 1];
       return u"-1";
     if sChars[0] in u"0123456789":
-      tsGroups = oPathMatch.groups();
       uIndex = long(sChars);
-      return tsGroups[uIndex] if uIndex in tsGroups else "";
+      try:
+        return oPathMatch.group(uIndex);
+      except IndexError:
+        return "";
     dsReplacements = {
       u"f": sFilePath,
       u"d": sDrive or u"",
