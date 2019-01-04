@@ -90,11 +90,9 @@ def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
   else:
     sName, sExtension = sNameExtension, u"";
   def fsSubstitudePathTemplates(oMatch):
-    sEscape, sChars = oMatch.groups();
+    sEscape, sDoNotQuote, sChars = oMatch.groups();
     if sEscape:
-      return "{" + sChars + "}"; # do not replace.
-    if sChars == u"$":
-      return sChars;
+      return u"{" + sDoNotQuote + sChars + u"}"; # do not replace.
     if sChars == u"l":
       if fsSubstitudePathTemplates.uCurrentLineNumberIndex < len(auLineNumbers):
         fsSubstitudePathTemplates.uCurrentLineNumberIndex += 1;
@@ -103,29 +101,32 @@ def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
     if sChars[0] in u"0123456789":
       uIndex = long(sChars);
       try:
-        return oPathMatch.group(uIndex);
+        sSubstitute = oPathMatch.group(uIndex);
       except IndexError:
-        return "";
-    dsReplacements = {
-      u"f": sFilePath,
-      u"d": sDrive or u"",
-      u"p": sPath or u"",
-      u"n": sName or u"",
-      u"x": sExtension or u"",
-    };
-    sResult = u"";
-    sLastChar = "";
-    for sChar in sChars:
-      if sChar == u"n" and sLastChar == u"p":
-        sResult += u"\\"
-      sResult += dsReplacements[sChar];
-      sLastChar = sChar;
-    return sResult;
+        sSubstitute = u"";
+    else:
+      sSubstitute = u"";
+      dsReplacements = {
+        u"f": sFilePath,
+        u"d": sDrive or u"",
+        u"p": sPath or u"",
+        u"n": sName or u"",
+        u"x": sExtension or u"",
+      };
+      sLastChar = "";
+      for sChar in sChars:
+        if sChar == u"n" and sLastChar == u"p":
+          sSubstitute += u"\\"
+        sSubstitute += dsReplacements[sChar];
+        sLastChar = sChar;
+    if sDoNotQuote == u"":
+      sSubstitute = u'"%s"' % sSubstitute.replace(u"\\", u"\\\\").replace(u'"', u'\\"');
+    return sSubstitute;
   fsSubstitudePathTemplates.uCurrentLineNumberIndex = 0;
   
   asCommandLine = [
     # match everything "{" replacement "}", and note if "{" is escaped as "\\{"
-    re.sub(ur"(\\)?\{(l|[0-9]+|[fdpnx]+)\}", fsSubstitudePathTemplates, sTemplate)
+    re.sub(ur"(\\)?\{(~?)(l|[0-9]+|[fdpnx]+)\}", fsSubstitudePathTemplates, sTemplate)
     for sTemplate in asCommandTemplate
   ];
   oProcess = mWindowsAPI.cConsoleProcess.foCreateForBinaryPathAndArguments(
