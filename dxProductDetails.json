@@ -16,5 +16,5 @@
   "sProductAuthor": "SkyLined", 
   "sProductName": "rs", 
   "sProductURL": "https://github.com/SkyLined/rs", 
-  "sTrialPeriodDuration": "1m"
+  "oTrialPeriodDuration": "1m"
 }
