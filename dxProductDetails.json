@@ -5,16 +5,16 @@
     "mProductDetails", 
     "mWindowsAPI"
   ], 
-  "oProductVersion": "2018-11-21 16:39", 
+  "oProductVersion": "2019-01-04 17:55", 
   "oRepository": {
     "sBranch": "master", 
     "sRepositoryName": "rs", 
     "sType": "GitHub", 
     "sUserName": "SkyLined"
   }, 
+  "oTrialPeriodDuration": "1m", 
   "sLicenseServerURL": "https://license.skylined.nl/License_dxCheck.php", 
   "sProductAuthor": "SkyLined", 
   "sProductName": "rs", 
-  "sProductURL": "https://github.com/SkyLined/rs", 
-  "oTrialPeriodDuration": "1m"
+  "sProductURL": "https://github.com/SkyLined/rs"
 }
