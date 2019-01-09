@@ -5,5 +5,5 @@
 *.user
 *.filters
 *.pyc
-
+releases
 Tests/tmp/
