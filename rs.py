@@ -296,7 +296,7 @@ def fMain(asArgs):
     if not arContentRegExps:
       asCommandTemplate = [u"uedit64.exe", u"{f}"];
     else:
-      asCommandTemplate = [u"uedit64.exe", u"{f}/{l}"];
+      asCommandTemplate = [u"uedit64.exe", u'"{~f}/{l}"']; # line number must be inside quotes
   if not arContentRegExps and not arNegativeContentRegExps and not arPathRegExps and not arNegativePathRegExps:
     oConsole.fPrint(ERROR, "Missing regular expression");
     os._exit(2);
