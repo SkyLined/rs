@@ -59,7 +59,7 @@ from oConsole import oConsole;
 import mProductDetails;
 import mWindowsAPI;
 
-asTestedPythonVersions = ["2.7.14", "2.7.15"];
+asTestedPythonVersions = ["2.7.14", "2.7.15", "2.7.16"];
 
 sComSpec = unicode(os.environ["COMSPEC"]);
 uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
