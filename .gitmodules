@@ -7,6 +7,3 @@
 [submodule "modules/mWindowsAPI"]
 	path = modules/mWindowsAPI
 	url = https://github.com/SkyLined/mWindowsAPI/
-[submodule "modules/mFileSystem"]
-	path = modules/mFileSystem
-	url = https://github.com/SkyLined/mFileSystem/
