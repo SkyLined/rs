@@ -17,37 +17,8 @@ import json, math, multiprocessing, os, platform, re, sys;
 # 4 = not used
 # 5 = license error
 
-# Augment the search path: look in main folder, parent folder or "modules" child folder, in that order.
-sMainFolderPath = os.path.abspath(os.path.dirname(__file__));
-sParentFolderPath = os.path.normpath(os.path.join(sMainFolderPath, ".."));
-sModulesFolderPath = os.path.join(sMainFolderPath, "modules");
-asOriginalSysPath = sys.path[:];
-sys.path = [sParentFolderPath, sModulesFolderPath] + asOriginalSysPath;
-
-for (sModuleName, sDownloadURL) in [
-  ("mDateTime", "https://github.com/SkyLined/mDateTime/"),
-  ("mProductDetails", "https://github.com/SkyLined/mProductDetails/"),
-  ("mWindowsAPI", "https://github.com/SkyLined/mWindowsAPI/"),
-  ("mWindowsSDK", "https://github.com/SkyLined/mWindowsSDK/"),
-  ("oConsole", "https://github.com/SkyLined/oConsole/"),
-]:
-  try:
-    __import__(sModuleName, globals(), locals(), [], -1);
-  except ImportError, oError:
-    if oError.message == "No module named %s" % sModuleName:
-      print "*" * 80;
-      print "%s depends on %s which you can download at:" % (os.path.basename(__file__), sModuleName);
-      print "    %s" % sDownloadURL;
-      print "After downloading, please save the code in this folder:";
-      print "    %s" % os.path.join(sModulesFolderPath, sModuleName);
-      print " - or -";
-      print "    %s" % os.path.join(sParentFolderPath, sModuleName);
-      print "Once you have completed these steps, please try again.";
-      print "*" * 80;
-    raise;
-
-# Restore the search path
-sys.path = asOriginalSysPath;
+from fCheckDependencies import fCheckDependencies;
+fCheckDependencies();
 
 from fCheckPythonVersion import fCheckPythonVersion;
 from fdoMultithreadedFilePathMatcher import fdoMultithreadedFilePathMatcher;
