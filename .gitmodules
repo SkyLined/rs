@@ -13,3 +13,6 @@
 [submodule "modules/mRegistry"]
 	path = modules/mRegistry
 	url = https://github.com/SkyLined/mRegistry/
+[submodule "modules/mWindowsAPI"]
+	path = modules/mWindowsAPI
+	url = https://github.com/SkyLined/mWindowsAPI/
