@@ -25,8 +25,10 @@ asOriginalSysPath = sys.path[:];
 sys.path = [sParentFolderPath, sModulesFolderPath] + asOriginalSysPath;
 
 for (sModuleName, sDownloadURL) in [
+  ("mDateTime", "https://github.com/SkyLined/mDateTime/"),
   ("mProductDetails", "https://github.com/SkyLined/mProductDetails/"),
   ("mWindowsAPI", "https://github.com/SkyLined/mWindowsAPI/"),
+  ("mWindowsSDK", "https://github.com/SkyLined/mWindowsSDK/"),
   ("oConsole", "https://github.com/SkyLined/oConsole/"),
 ]:
   try:
