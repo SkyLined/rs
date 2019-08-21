@@ -14,8 +14,8 @@
     "sType": "GitHub", 
     "sUserName": "SkyLined"
   }, 
-  "oTrialPeriodDuration": "1m", 
-  "sLicenseServerURL": "https://license.skylined.nl/License_dxCheck.php", 
+  "oTrialPeriodDuration": null, 
+  "sLicenseServerURL": null, 
   "sProductAuthor": "SkyLined", 
   "sProductName": "rs", 
   "sProductURL": "https://github.com/SkyLined/rs"
