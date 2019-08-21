@@ -108,5 +108,4 @@ Exit codes:
   1 = rs matched one or more files.
   2 = rs was unable to parse the command-line arguments provided.
   3 = rs ran into an internal error: pleace report the details!
-  5 = You do not have a valid license.
 ```

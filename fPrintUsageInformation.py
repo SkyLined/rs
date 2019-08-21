@@ -105,6 +105,5 @@ def fPrintUsageInformation():
     oConsole.fPrint("  ", INFO, "1", NORMAL," = rs matched one or more files.");
     oConsole.fPrint("  ", ERROR_INFO, "2", NORMAL, " = rs was unable to parse the command-line arguments provided.");
     oConsole.fPrint("  ", ERROR_INFO, "3", NORMAL, " = rs ran into an internal error: pleace report the details!");
-    oConsole.fPrint("  ", ERROR_INFO, "5", NORMAL, " = You do not have a valid license.");
   finally:             
     oConsole.fUnlock();

@@ -15,7 +15,6 @@ import json, math, multiprocessing, os, platform, re, sys;
 # 2 = bad arguments
 # 3 = internal error
 # 4 = not used
-# 5 = license error
 
 from fCheckDependencies import fCheckDependencies;
 fCheckDependencies();
@@ -28,7 +27,6 @@ from fPrintUsageInformation import fPrintUsageInformation;
 from fPrintVersionInformation import fPrintVersionInformation;
 from mColors import *;
 from oConsole import oConsole;
-import mProductDetails;
 import mWindowsAPI;
 
 asTestedPythonVersions = ["2.7.14", "2.7.15", "2.7.16"];
@@ -281,29 +279,6 @@ def fMain(asArgs):
   if bArgIsNumberOfRelevantLinesAroundMatch:
     oConsole.fPrint(ERROR, "missing number of matched lines to show");
     os._exit(2);
-  
-  # Check license
-  oLicenseCollection = mProductDetails.foGetLicenseCollectionForAllLoadedProducts();
-  (asLicenseErrors, asLicenseWarnings) = oLicenseCollection.ftasGetLicenseErrorsAndWarnings();
-  if asLicenseErrors:
-    oConsole.fLock();
-    try:
-      oConsole.fPrint(ERROR, u"\u250C\u2500", ERROR_INFO, " Software license error ", ERROR, sPadding = u"\u2500");
-      for sLicenseError in asLicenseErrors:
-        oConsole.fPrint(ERROR, u"\u2502 ", ERROR_INFO, sLicenseError);
-      oConsole.fPrint(ERROR, u"\u2514", sPadding = u"\u2500");
-    finally:
-      oConsole.fUnlock();
-    os._exit(5);
-  if asLicenseWarnings:
-    oConsole.fLock();
-    try:
-      oConsole.fPrint(WARNING, u"\u250C\u2500", WARNING_INFO, " Software license warning ", WARNING, sPadding = u"\u2500");
-      for sLicenseWarning in asLicenseWarnings:
-        oConsole.fPrint(WARNING, u"\u2502 ", WARNING_INFO, sLicenseWarning);
-      oConsole.fPrint(WARNING, u"\u2514", sPadding = u"\u2500");
-    finally:
-      oConsole.fUnlock();
   
   # Show argument values in verbose mode
   if bVerbose:
