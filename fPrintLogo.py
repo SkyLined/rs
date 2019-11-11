@@ -1,7 +1,7 @@
 from oConsole import oConsole;
 from mColors import *;
 
-asBugIdLogo = [s.rstrip() for s in """
+asLogo = [s.rstrip() for s in """
           dS'                          dS'                                      
          dS' .cid ,dSSc  ,dS"*sd      dS'   /R/egular expression /S/earch       
         dS'    SS;' '*'  YS(   Y     dS'                                        
@@ -14,7 +14,7 @@ asBugIdLogo = [s.rstrip() for s in """
 # We can now add color to console output, so let's create a second version of
 # the above logo, but with color information (" " = default terminal color, hex
 # digit = color number.
-asBugIdLogoColors = [s.rstrip() for s in """
+asLogoColors = [s.rstrip() for s in """
           999                          999                                      
          999 BBBB BBBBB  BBBBBBB      999   BBB77777777777777777 BBB77777       
         999    BBBB BBB  BBB   B     999                                        
@@ -29,12 +29,12 @@ def fPrintLogo():
   # that can be passed to oConsole.fPrint in order to output the logo in color:
   oConsole.fLock();
   try:
-    for uLineIndex in xrange(len(asBugIdLogo)):
+    for uLineIndex in xrange(len(asLogo)):
       uCurrentColor = NORMAL;
       bUnderlined = False;
-      asBugIdLogoPrintArguments = [""];
-      sCharsLine = asBugIdLogo[uLineIndex];
-      sColorsLine = asBugIdLogoColors[uLineIndex];
+      asLogoPrintArguments = [""];
+      sCharsLine = asLogo[uLineIndex];
+      sColorsLine = asLogoColors[uLineIndex];
       uColorIndex = 0;
       for uColumnIndex in xrange(len(sCharsLine)):
         sColor = sColorsLine[uColorIndex];
@@ -45,10 +45,10 @@ def fPrintLogo():
           uColorIndex += 1;
         uColor = (sColor != " " and (0x0F00 + long(sColor, 16)) or NORMAL) + (bUnderlined and UNDERLINE or 0);
         if uColor != uCurrentColor:
-          asBugIdLogoPrintArguments.extend([uColor, ""]);
+          asLogoPrintArguments.extend([uColor, ""]);
           uCurrentColor = uColor;
         sChar = sCharsLine[uColumnIndex];
-        asBugIdLogoPrintArguments[-1] += sChar;
-      oConsole.fPrint(*asBugIdLogoPrintArguments);
+        asLogoPrintArguments[-1] += sChar;
+      oConsole.fPrint(*asLogoPrintArguments);
   finally:
     oConsole.fUnlock();

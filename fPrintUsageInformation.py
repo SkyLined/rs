@@ -104,6 +104,6 @@ def fPrintUsageInformation():
     oConsole.fPrint("  ", INFO, "0", NORMAL," = rs did not match any files.");
     oConsole.fPrint("  ", INFO, "1", NORMAL," = rs matched one or more files.");
     oConsole.fPrint("  ", ERROR_INFO, "2", NORMAL, " = rs was unable to parse the command-line arguments provided.");
-    oConsole.fPrint("  ", ERROR_INFO, "3", NORMAL, " = rs ran into an internal error: pleace report the details!");
+    oConsole.fPrint("  ", ERROR_INFO, "3", NORMAL, " = rs ran into an internal error: please report the details!");
   finally:             
     oConsole.fUnlock();
