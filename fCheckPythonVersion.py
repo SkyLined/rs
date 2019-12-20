@@ -27,7 +27,7 @@ def fCheckPythonVersion(sApplicationName, asTestedPythonVersions, sBugURL):
         bRunningInOlderVersion = True;
   if not bRunningInTestedMajorVersion:
     asTestedMayorVersions = [str(u) for u in auTestedMajorVersions];
-    oConsole.fPrint(ERROR, "Error: rs requires ", ERROR_INFO, "Python %s" % faxListOutput(asMayorVersions, "or", ERROR_INFO, ERROR), ".");
+    oConsole.fPrint(ERROR, "Error: rs requires ", ERROR_INFO, "Python %s" % faxListOutput(auTestedMajorVersions, "or", ERROR_INFO, ERROR), ".");
     os._exit(3);
   if not bRunningInTestedVersion:
     oConsole.fLock();
