@@ -65,7 +65,7 @@ class cMultithreadedFilePathMatcher(object):
         sFullItemPath = u"\\\\?\\" + unicode(sItemPath);
         try:
           asSubItemNames = os.listdir(sFullItemPath);
-        except:
+        except Exception:
           # This failed: assume it is a file.
           oSelf.oNumberOfFilesFound.fuIncrease();
           oSelf.fDebug();
@@ -82,7 +82,7 @@ class cMultithreadedFilePathMatcher(object):
             sFullSubItemPath = os.path.join(sFullItemPath, sSubItemName);
             try:
               sSubItemName = str(sSubItemName);
-            except:
+            except Exception:
               pass;
             sSubItemPath = os.path.join(sItemPath, sSubItemName);
             # Doing a recursive find means getting sub-items of sub-folders as well, so queue it:
