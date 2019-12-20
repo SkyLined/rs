@@ -153,7 +153,8 @@ class cMultithreadedFileContentMatcher(object):
       oSelf.oException = oException;
       raise;
     finally:
-      uFinished = oSelf.oScanThreadsFinished.fuIncrease();
+      oSelf.oScanThreadsFinished.fuIncrease();
+#      uFinished = oSelf.oScanThreadsFinished.fuIncrease();
 #      oConsole.fPrint("Scan thread %d/%d done" % (uFinished, oSelf.oScanThreadsStarted.uValue));
       oSelf.oFilePathsQueue.put(None);
   
