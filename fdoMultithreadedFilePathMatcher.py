@@ -1,4 +1,4 @@
-import math, os, Queue, threading, time;
+import os, Queue, threading, time;
 from cCounter import cCounter;
 from cDict import cDict;
 from mColors import *;

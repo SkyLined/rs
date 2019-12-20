@@ -1,4 +1,4 @@
-import os, platform;
+import platform;
 from faxListOutput import faxListOutput;
 from mColors import *;
 import mProductDetails;
