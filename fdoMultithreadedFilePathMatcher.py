@@ -90,7 +90,7 @@ class cMultithreadedFilePathMatcher(object):
               oSelf.oUnhandledItemPathsQueue.put(sSubItemPath);
             else:
               # Not doing a recursive find means only handle sub-items that are files:
-              if os.path.isfile(sSubItemPath):
+              if os.path.isfile(sFullSubItemPath):
                 oSelf.oNumberOfFilesFound.fuIncrease();
                 oSelf.fDebug();
                 oSelf.fHandleFile(sSubItemPath);
@@ -122,37 +122,36 @@ class cMultithreadedFilePathMatcher(object):
           if oSelf.bVerbose:
             oConsole.fPrint(DIM, "  - %s (matches negative reg.exp.)" % sItemPath);
           return;
+      # Not matching negative reg.exp. means maybe add:
+      if not oSelf.arPathRegExps:
+        # Not having positive reg.exps. means add:
+        if oSelf.bVerbose:
+          oConsole.fPrint("  + %s (does not match any negative reg.exp.)" % sItemPath);
       else:
-        # Not matching negative reg.exp. means maybe add:
-        if not oSelf.arPathRegExps:
-          # Not having positive reg.exps. means add:
-          if oSelf.bVerbose:
-            oConsole.fPrint("  + %s (does not match any negative reg.exp.)" % sItemPath);
-        else:
-          # Having positive reg.exps. means add if matched:
-          for rPathRegExp in oSelf.arPathRegExps:
-            oMatch = rPathRegExp.search(sItemPath);
-            if oMatch:
-              # Matching positive reg.exp. means add (and stop matching).
-              if oSelf.bVerbose:
-                asSubMatchesOutput = [];
-                for sSubMatch in oMatch.groups():
-                  if len(asSubMatchesOutput):
-                    asSubMatchesOutput.append(", ");
-                  asSubMatchesOutput.extend([NORMAL, sSubMatch, DIM]);
-                asSubMatchesOutput.append(".");
-                oConsole.fLock();
-                try:
-                  oConsole.fPrint("  + %s (matches reg.exp.)" % sItemPath);
-                  oConsole.fPrint(DIM, "    Sub-matches: ", *asSubMatchesOutput);
-                finally:
-                  oConsole.fUnlock();
-              break;
-            else:
-              # Not matching positive reg.exps. means don't add.
-              if oSelf.bVerbose:
-                oConsole.fPrint(DIM, "  - %s (does not match any reg.exp.)" % sItemPath);
-              return;
+        # Having positive reg.exps. means add if matched:
+        for rPathRegExp in oSelf.arPathRegExps:
+          oMatch = rPathRegExp.search(sItemPath);
+          if oMatch:
+            # Matching positive reg.exp. means add (and stop matching).
+            if oSelf.bVerbose:
+              asSubMatchesOutput = [];
+              for sSubMatch in oMatch.groups():
+                if len(asSubMatchesOutput):
+                  asSubMatchesOutput.append(", ");
+                asSubMatchesOutput.extend([NORMAL, sSubMatch, DIM]);
+              asSubMatchesOutput.append(".");
+              oConsole.fLock();
+              try:
+                oConsole.fPrint("  + %s (matches reg.exp.)" % sItemPath);
+                oConsole.fPrint(DIM, "    Sub-matches: ", *asSubMatchesOutput);
+              finally:
+                oConsole.fUnlock();
+            break;
+          else:
+            # Not matching positive reg.exps. means don't add.
+            if oSelf.bVerbose:
+              oConsole.fPrint(DIM, "  - %s (does not match any reg.exp.)" % sItemPath);
+            return;
     oSelf.odosMatchedFilePaths.fSet(sItemPath, oMatch);
   
   def fStatusThread(oSelf):
