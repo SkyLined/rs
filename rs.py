@@ -29,7 +29,7 @@ from mColors import *;
 from oConsole import oConsole;
 import mWindowsAPI;
 
-asTestedPythonVersions = ["2.7.14", "2.7.15", "2.7.16"];
+asTestedPythonVersions = ["2.7.14", "2.7.15", "2.7.16", "2.7.17"];
 
 sComSpec = unicode(os.environ["COMSPEC"]);
 uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
