@@ -12,7 +12,7 @@ class cProductDetails(object):
       finally:
         oProductDetailsFile.close();
       oSelf.sProductName = dxProductDetails["sProductName"];
-      oSelf.asDependentOnProductNames = dxProductDetails["asDependentOnProductNames"];
+      oSelf.asDependentOnProductNames = dxProductDetails.get("asDependentOnProductNames", []);
     except:
       print "*" * 80;
       print "The file %s does not appear to contain valid product details!" % sProductDetailsFilePath;
