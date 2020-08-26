@@ -18,102 +18,107 @@ import json, math, multiprocessing, os, re, sys;
 
 from fCheckDependencies import fCheckDependencies;
 fCheckDependencies();
+try:
+  import mDebugOutput;
+except:
+  mDebugOutput = None;
 
-from fCheckPythonVersion import fCheckPythonVersion;
-from fdoMultithreadedFilePathMatcher import fdoMultithreadedFilePathMatcher;
-from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
-from fPrintLogo import fPrintLogo;
-from fPrintUsageInformation import fPrintUsageInformation;
-from fPrintVersionInformation import fPrintVersionInformation;
-from mColors import *;
-from oConsole import oConsole;
-import mWindowsAPI;
-
-asTestedPythonVersions = ["2.7.14", "2.7.15", "2.7.16", "2.7.17"];
-
-sComSpec = unicode(os.environ["COMSPEC"]);
-uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
-
-def fsBytes(nValue):
-  asUnits = ["bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-  nValue = float(nValue);
-  for uUnitIndex in range(0, len(asUnits)):
-    if nValue < 9999:
-      break;
-    nValue /= 1000.0;
-  sValue = str(math.floor(nValue * 100) / 100.0);
-  return sValue + " " + asUnits[uUnitIndex];
-
-def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
-  asCommandTemplate = [unicode(s) for s in asCommandTemplate];
-  sDrivePath, sNameExtension = sFilePath.rsplit(u"\\", 1);
-  if u":" in sDrivePath:
-    sDrive, sPath = sDrivePath.split(u":", 1);
-    if sDrive.startswith(u"\\\\?\\"):
-      sDrive = sDrive[4:];
-    sDrive += ":";
-  else:
-    sDrive, sPath = u"", sDrivePath;
-  if u"." in sNameExtension:
-    sName, sExtension = sNameExtension.rsplit(u".", 1);
-    sExtension = "." + sExtension;
-  else:
-    sName, sExtension = sNameExtension, u"";
-  def fsSubstitudePathTemplates(oMatch):
-    sEscape, sDoNotQuote, sChars = oMatch.groups();
-    if sEscape:
-      return u"{" + sDoNotQuote + sChars + u"}"; # do not replace.
-    if sChars == u"l":
-      if fsSubstitudePathTemplates.uCurrentLineNumberIndex < len(auLineNumbers):
-        fsSubstitudePathTemplates.uCurrentLineNumberIndex += 1;
-        return u"%d" % auLineNumbers[fsSubstitudePathTemplates.uCurrentLineNumberIndex - 1];
-      return u"-1";
-    if sChars[0] in u"0123456789":
-      uIndex = long(sChars);
-      try:
-        sSubstitute = oPathMatch.group(uIndex);
-      except IndexError:
-        sSubstitute = u"";
-    else:
-      sSubstitute = u"";
-      dsReplacements = {
-        u"f": sFilePath,
-        u"d": sDrive or u"",
-        u"p": sPath or u"",
-        u"n": sName or u"",
-        u"x": sExtension or u"",
-      };
-      sLastChar = "";
-      for sChar in sChars:
-        if sChar == u"n" and sLastChar == u"p":
-          sSubstitute += u"\\"
-        sSubstitute += dsReplacements[sChar];
-        sLastChar = sChar;
-    if sDoNotQuote == u"":
-      sSubstitute = u'"%s"' % sSubstitute.replace(u"\\", u"\\\\").replace(u'"', u'\\"');
-    return sSubstitute;
-  fsSubstitudePathTemplates.uCurrentLineNumberIndex = 0;
+try:
+  from oConsole import oConsole;
+  import mWindowsAPI;
   
-  asCommandLine = [
-    # match everything "{" replacement "}", and note if "{" is escaped as "\\{"
-    re.sub(ur"(\\)?\{(~?)(l|[0-9]+|[fdpnx]+)\}", fsSubstitudePathTemplates, sTemplate)
-    for sTemplate in asCommandTemplate
-  ];
-  oProcess = mWindowsAPI.cConsoleProcess.foCreateForBinaryPathAndArguments(
-    sBinaryPath = sComSpec,
-    asArguments = [u"/C"] + asCommandLine,
-    bRedirectStdOut = False,
-    bRedirectStdErr = False,
-  );
-  oProcess.fbWait();
-
-def frRegExp(sRegExp, sFlags):
-  return re.compile(unicode(sRegExp), sum([
-    {"i": re.I, "l":re.L, "m":re.M, "s": re.S, "u": re.U, "x": re.X}[sFlag]
-    for sFlag in sFlags
-  ]));
-
-def fMain(asArgs):
+  from fCheckPythonVersion import fCheckPythonVersion;
+  from fdoMultithreadedFilePathMatcher import fdoMultithreadedFilePathMatcher;
+  from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
+  from fPrintLogo import fPrintLogo;
+  from fPrintUsageInformation import fPrintUsageInformation;
+  from fPrintVersionInformation import fPrintVersionInformation;
+  from mColors import *;
+  
+  asTestedPythonVersions = ["2.7.14", "2.7.15", "2.7.16", "2.7.17"];
+  
+  sComSpec = unicode(os.environ["COMSPEC"]);
+  uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
+  
+  def fsBytes(nValue):
+    asUnits = ["bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    nValue = float(nValue);
+    for uUnitIndex in range(0, len(asUnits)):
+      if nValue < 9999:
+        break;
+      nValue /= 1000.0;
+    sValue = str(math.floor(nValue * 100) / 100.0);
+    return sValue + " " + asUnits[uUnitIndex];
+  
+  def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
+    asCommandTemplate = [unicode(s) for s in asCommandTemplate];
+    sDrivePath, sNameExtension = sFilePath.rsplit(u"\\", 1);
+    if u":" in sDrivePath:
+      sDrive, sPath = sDrivePath.split(u":", 1);
+      if sDrive.startswith(u"\\\\?\\"):
+        sDrive = sDrive[4:];
+      sDrive += ":";
+    else:
+      sDrive, sPath = u"", sDrivePath;
+    if u"." in sNameExtension:
+      sName, sExtension = sNameExtension.rsplit(u".", 1);
+      sExtension = "." + sExtension;
+    else:
+      sName, sExtension = sNameExtension, u"";
+    def fsSubstitudePathTemplates(oMatch):
+      sEscape, sDoNotQuote, sChars = oMatch.groups();
+      if sEscape:
+        return u"{" + sDoNotQuote + sChars + u"}"; # do not replace.
+      if sChars == u"l":
+        if fsSubstitudePathTemplates.uCurrentLineNumberIndex < len(auLineNumbers):
+          fsSubstitudePathTemplates.uCurrentLineNumberIndex += 1;
+          return u"%d" % auLineNumbers[fsSubstitudePathTemplates.uCurrentLineNumberIndex - 1];
+        return u"-1";
+      if sChars[0] in u"0123456789":
+        uIndex = long(sChars);
+        try:
+          sSubstitute = oPathMatch.group(uIndex);
+        except IndexError:
+          sSubstitute = u"";
+      else:
+        sSubstitute = u"";
+        dsReplacements = {
+          u"f": sFilePath,
+          u"d": sDrive or u"",
+          u"p": sPath or u"",
+          u"n": sName or u"",
+          u"x": sExtension or u"",
+        };
+        sLastChar = "";
+        for sChar in sChars:
+          if sChar == u"n" and sLastChar == u"p":
+            sSubstitute += u"\\"
+          sSubstitute += dsReplacements[sChar];
+          sLastChar = sChar;
+      if sDoNotQuote == u"":
+        sSubstitute = u'"%s"' % sSubstitute.replace(u"\\", u"\\\\").replace(u'"', u'\\"');
+      return sSubstitute;
+    fsSubstitudePathTemplates.uCurrentLineNumberIndex = 0;
+    
+    asCommandLine = [
+      # match everything "{" replacement "}", and note if "{" is escaped as "\\{"
+      re.sub(ur"(\\)?\{(~?)(l|[0-9]+|[fdpnx]+)\}", fsSubstitudePathTemplates, sTemplate)
+      for sTemplate in asCommandTemplate
+    ];
+    oProcess = mWindowsAPI.cConsoleProcess.foCreateForBinaryPathAndArguments(
+      sBinaryPath = sComSpec,
+      asArguments = [u"/C"] + asCommandLine,
+      bRedirectStdOut = False,
+      bRedirectStdErr = False,
+    );
+    oProcess.fbWait();
+  
+  def frRegExp(sRegExp, sFlags):
+    return re.compile(unicode(sRegExp), sum([
+      {"i": re.I, "l":re.L, "m":re.M, "s": re.S, "u": re.U, "x": re.X}[sFlag]
+      for sFlag in sFlags
+    ]));
+  
   # Make sure the Python binary is up to date; we don't want our users to unknowingly run outdated software as this is
   # likely to cause unexpected issues.
   fCheckPythonVersion("rs", asTestedPythonVersions, "https://github.com/SkyLined/rs/issues/new")
@@ -137,7 +142,7 @@ def fMain(asArgs):
   bArgIsNumberOfRelevantLinesAroundMatch = False;
   bArgsAreCommandTemplate = False;
   asCommandTemplate = [];
-  for sArg in asArgs:
+  for sArg in sys.argv[1:]:
     if bArgIsConvertTabsToSpaces:
       try:
         uConvertTabsToSpaces = long(sArg);
@@ -407,5 +412,7 @@ def fMain(asArgs):
     raw_input();
   os._exit(uResult);
 
-if __name__ == "__main__":
-  fMain(sys.argv[1:]);
+except Exception as oException:
+  if mDebugOutput:
+    mDebugOutput.fTerminateWithException(oException);
+  raise;
