@@ -96,7 +96,7 @@ try:
           sSubstitute += dsReplacements[sChar];
           sLastChar = sChar;
       if sDoNotQuote == u"":
-        sSubstitute = u'"%s"' % sSubstitute.replace(u"\\", u"\\\\").replace(u'"', u'\\"');
+        sSubstitute = u'"%s"' % sSubstitute.replace(u'"', u'"""');
       return sSubstitute;
     fsSubstitudePathTemplates.uCurrentLineNumberIndex = 0;
     
