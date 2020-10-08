@@ -89,7 +89,7 @@ def fPrintUsageInformation():
     oConsole.fPrint("    path and name contains a sequence of 1 or more 'p'-s (either upper- or");
     oConsole.fPrint("    lowercase). Output the path and name of the files that matched.");
     oConsole.fPrint();
-    oConsole.fPrint(INFO, "  rs /class\\s+\\w+/m -p /\\.c(pp|xx)$/i -- notepad %f");
+    oConsole.fPrint(INFO, "  rs /class\\s+\\w+/m -p /\\.c(pp|xx)$/i -- notepad {f}");
     oConsole.fPrint("    Match all files in the current folder that have a .cpp or .cxx extension.");
     oConsole.fPrint("    Match the content of these files against a C++ class definitions. Output");
     oConsole.fPrint("    the path, name and line numbers of the files and open each one in Notepad.");
