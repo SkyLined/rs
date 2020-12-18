@@ -1,5 +1,7 @@
 {
   "asDependentOnProductNames": [
+    "cFileSystemItem",
+    "fsBytesToHumanReadableString",
     "mDateTime", 
     "mProductDetails", 
     "mWindowsAPI", 
@@ -7,7 +9,9 @@
     "mRegistry", 
     "oConsole"
   ], 
-  "asOptionalProductNames": [], 
+  "asOptionalProductNames": [
+    "mDebugOutput"
+  ], 
   "oProductVersion": "2020-08-12 11:50", 
   "oRepository": {
     "sBranch": "master", 
