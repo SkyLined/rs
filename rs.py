@@ -16,12 +16,12 @@ import json, math, multiprocessing, os, re, sys;
 # 3 = internal error
 # 4 = not used
 
-from fCheckDependencies import fCheckDependencies;
-fCheckDependencies();
 try:
   import mDebugOutput;
 except:
   mDebugOutput = None;
+from fInitializeProduct import fInitializeProduct;
+fInitializeProduct();
 
 try:
   from oConsole import oConsole;
