@@ -1,8 +1,10 @@
 import os, Queue, threading, time;
+from oConsole import oConsole;
+
 from cCounter import cCounter;
 from cDict import cDict;
 from mColors import *;
-from oConsole import oConsole;
+
 giBarLength = 80;
 
 def fdoMultithreadedFilePathMatcher(uMaxThreads, asFolderPaths, bRecursive, arPathRegExps, arNegativePathRegExps, bVerbose):

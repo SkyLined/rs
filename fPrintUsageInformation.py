@@ -1,4 +1,5 @@
 from oConsole import oConsole;
+
 from mColors import *;
 
 def fPrintUsageInformation():

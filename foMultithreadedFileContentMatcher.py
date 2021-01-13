@@ -1,8 +1,10 @@
 import Queue, threading, time;
+from oConsole import oConsole;
+
 from cCounter import cCounter;
 from cList import cList;
 from mColors import *;
-from oConsole import oConsole;
+
 bDebug = False;
 
 def foMultithreadedFileContentMatcher(uMaxThreads, asFilePaths, arContentRegExps, arNegativeContentRegExps, bUnicode, uNumberOfRelevantLinesBeforeMatch, uNumberOfRelevantLinesAfterMatch):
