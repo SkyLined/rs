@@ -16,12 +16,18 @@ import json, math, multiprocessing, os, re, sys;
 # 3 = internal error
 # 4 = not used
 
-try:
-  import mDebugOutput;
-except:
-  mDebugOutput = None;
 from fInitializeProduct import fInitializeProduct;
 fInitializeProduct();
+
+try: # mDebugOutput use is Optional
+  from mDebugOutput import *;
+except: # Do nothing if not available.
+  ShowDebugOutput = lambda fxFunction: fxFunction;
+  fShowDebugOutput = lambda sMessage: None;
+  fEnableDebugOutputForModule = lambda mModule: None;
+  fEnableDebugOutputForClass = lambda cClass: None;
+  fEnableAllDebugOutput = lambda: None;
+  cCallStack = fTerminateWithException = fTerminateWithConsoleOutput = None;
 
 try:
   from oConsole import oConsole;
@@ -405,6 +411,6 @@ try:
     os._exit(uResult);
 
 except Exception as oException:
-  if mDebugOutput:
-    mDebugOutput.fTerminateWithException(oException);
+  if fTerminateWithException:
+    fTerminateWithException(oException);
   raise;
