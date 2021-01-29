@@ -19,3 +19,6 @@
 [submodule "modules/fsBytesToHumanReadableString"]
 	path = modules/fsBytesToHumanReadableString
 	url = https://github.com/SkyLined/fsBytesToHumanReadableString/
+[submodule "modules/cFileSystemItem"]
+	path = modules/cFileSystemItem
+	url = https://github.com/SkyLined/cFileSystemItem/
