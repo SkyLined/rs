@@ -16,3 +16,6 @@
 [submodule "modules/mWindowsAPI"]
 	path = modules/mWindowsAPI
 	url = https://github.com/SkyLined/mWindowsAPI/
+[submodule "modules/fsBytesToHumanReadableString"]
+	path = modules/fsBytesToHumanReadableString
+	url = https://github.com/SkyLined/fsBytesToHumanReadableString/
