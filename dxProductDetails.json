@@ -1,4 +1,8 @@
 {
+  "asProductTypes": ["Python application"],
+  "asPythonApplicationNames": [
+    "rs"
+  ],
   "asDependentOnProductNames": [
     "cFileSystemItem",
     "fsBytesToHumanReadableString",
