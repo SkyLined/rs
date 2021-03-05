@@ -32,7 +32,7 @@ except: # Do nothing if not available.
 try:
   from oConsole import oConsole;
   import mWindowsAPI;
-  from fsBytesToHumanReadableString import fsBytesToHumanReadableString;
+  from mHumanReadable import fsBytesToHumanReadableString;
   
   from fCheckPythonVersion import fCheckPythonVersion;
   from fdoMultithreadedFilePathMatcher import fdoMultithreadedFilePathMatcher;
