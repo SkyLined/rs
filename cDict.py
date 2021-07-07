@@ -1,8 +1,8 @@
-import Queue;
+import queue;
 
 class cDict(object):
   def __init__(oSelf, dxValue = {}):
-   oSelf.oValueQueue = Queue.Queue();
+   oSelf.oValueQueue = queue.Queue();
    oSelf.oValueQueue.put(dxValue);
   
   @property

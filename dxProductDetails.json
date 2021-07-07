@@ -1,34 +1,34 @@
 {
-  "asDependentOnProductNames": [
-    "cFileSystemItem",
+  "a0sDebugAdditionalProductNames": [
+    "mDebugOutput"
+  ],
+  "a0sDependentOnProductNames": [
+    "mFileSystemItem",
     "mHumanReadable",
     "mDateTime",
     "mProductDetails",
     "mWindowsAPI",
     "mWindowsSDK",
     "mRegistry",
-    "oConsole",
+    "mConsole",
     "mNotProvided"
   ],
-  "asJavaScriptModuleNames": [],
-  "asOptionalProductNames": [
-    "mDebugOutput"
+  "a0sPythonApplicationNames": [
+    "rs"
   ],
-  "asPHPModuleNames": [],
   "asProductTypes": [
     "Python application"
   ],
-  "asPythonApplicationNames": [
-    "rs"
-  ],
-  "oProductVersion": "2021-04-15 11:38",
-  "oRepository": {
-    "sBranch": "master",
-    "sRepositoryName": "rs",
+  "o0Repository": {
+    "sStructureVersion": "2021-07-02 11:16",
     "sType": "GitHub",
-    "sUserName": "SkyLined"
+    "sbBranch": "master",
+    "sbRepositoryName": "rs",
+    "sbUserName": "SkyLined"
   },
+  "oProductVersion": "2021-07-07 12:51",
   "sProductAuthor": "SkyLined",
   "sProductName": "rs",
-  "sProductURL": "https://github.com/SkyLined/rs"
+  "sStructureVersion": "2021-07-02 11:16",
+  "sb0ProductURL": "https://github.com/SkyLined/rs"
 }

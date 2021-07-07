@@ -1,19 +1,24 @@
-from oConsole import oConsole;
+from mConsole import oConsole;
 
 # Colors used in output for various types of information:
 NORMAL =            0x0F07; # Light gray
 DIM =               0x0F08; # Dark gray
 INFO =              0x0F0B; # Bright blue
 HILITE =            0x0F0F; # Bright white
+OK =                0x0F02; # Green
+OK_INFO =           0x0F0A; # Bright Green
 ERROR =             0x0F04; # Red
 ERROR_INFO =        0x0F0C; # Bright red
 WARNING =           0x0F06; # Yellow
 WARNING_INFO =      0x0F0E; # Bright yellow
 UNDERLINE =        0x10000;
 
+BAR =               0xFF1B; # Light cyan on Dark blue
+PROGRESS =          0xFFB1; # Dark blue on light cyan
+
 oConsole.uDefaultColor = NORMAL;
-oConsole.uDefaultBarColor = 0xFF1B; # Light cyan on Dark blue
-oConsole.uDefaultProgressColor = 0xFFB1; # Dark blue on light cyan
+oConsole.uDefaultBarColor = BAR;
+oConsole.uDefaultProgressColor = PROGRESS;
 
 FILE_NAME =         0xFF0B; # The file name
 FILE_LINENO =       0xFF09; # The line numbers in the file after the file name.
@@ -35,4 +40,3 @@ LINENO_CONTENT_SEPARATOR = 0xFF08; # The separator between the line number and t
 CONTENT =           0xFF07; # The unmatched file content lines
 CONTENT_MATCH =     0xFF0B; # The matched file content lines
 CONTENT_EOL =       0xFF08; # End of file content line marker
-

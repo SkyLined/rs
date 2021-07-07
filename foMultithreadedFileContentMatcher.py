@@ -1,5 +1,5 @@
-import Queue, threading, time;
-from oConsole import oConsole;
+import queue, threading, time;
+from mConsole import oConsole;
 
 from cCounter import cCounter;
 from cList import cList;
@@ -24,10 +24,10 @@ class cMultithreadedFileContentMatcher(object):
     oSelf.oException = None;
     oSelf.oasNotScannedFilePaths = cList();
     oSelf.dMatched_auLineNumbers_by_sFilePath = {};
-    oSelf.dRelevant_asLines_by_uLineNumber_by_sFilePath = {};
+    oSelf.dRelevant_asbLines_by_uLineNumber_by_sFilePath = {};
     oSelf.oScanThreadsStarted = cCounter(uMaxThreads);
     oSelf.oScanThreadsFinished = cCounter(0);
-    oSelf.oFilePathsQueue = Queue.Queue();
+    oSelf.oFilePathsQueue = queue.Queue();
     oSelf.oFileScansStarted = cCounter(0);
     oSelf.oFileScansFinished = cCounter(0);
     for sFilePath in oSelf.asFilePaths:
@@ -36,7 +36,7 @@ class cMultithreadedFileContentMatcher(object):
     
     aoThreads = [
       threading.Thread(target = oSelf.fScanThread)
-      for x in xrange(uMaxThreads)
+      for x in range(uMaxThreads)
     ] + [
       threading.Thread(target = oSelf.fStatusThread)
     ];
@@ -49,7 +49,7 @@ class cMultithreadedFileContentMatcher(object):
   
   def fDebug(oSelf, sStatus):
     if bDebug:
-      oConsole.fPrint("%d/%d/%d %s" % (oSelf.oFileScansStarted.uValue, oSelf.oFileScansFinished.uValue, oSelf.uNumberOfFiles, sStatus));
+      oConsole.fOutput("%d/%d/%d %s" % (oSelf.oFileScansStarted.uValue, oSelf.oFileScansFinished.uValue, oSelf.uNumberOfFiles, sStatus));
   
   def fScanThread(oSelf):
     try:
@@ -59,33 +59,33 @@ class cMultithreadedFileContentMatcher(object):
           break;
         oSelf.oFileScansStarted.fuIncrease();
         oSelf.fDebug("start scan (%s)" % sFilePath);
-        nStartTime = time.clock();
-        fnScanTime = lambda: time.clock() - nStartTime;
+        nStartTime = time.time();
+        fnScanTime = lambda: time.time() - nStartTime;
         try:
           oFile = open(sFilePath, "rb");
-        except Exception, oException:
+        except Exception as oException:
           oSelf.oasNotScannedFilePaths.fAdd(sFilePath);
           oSelf.oFileScansFinished.fuIncrease();
           oSelf.fDebug("stop scan: can't open %s (%fs)" % (sFilePath, fnScanTime()));
           continue;
         if oSelf.oException: return;
         try:
-          sContent = oFile.read();
-        except Exception, oException:
+          sbContent = oFile.read();
+        except Exception as oException:
           oSelf.oasNotScannedFilePaths.fAdd(sFilePath);
           oSelf.oFileScansFinished.fuIncrease();
           oSelf.fDebug("stop scan: can't read %s (%fs)" % (sFilePath, fnScanTime()));
           continue;
         finally:
           oFile.close();
-        oSelf.uScannedBytes += len(sContent);
+        oSelf.uScannedBytes += len(sbContent);
         if oSelf.bUnicode:
-          sContent = sContent.replace("\0", "");
+          sbContent = sbContent.replace(b"\0", b"");
         if oSelf.oException: return;
         bNegativeMatch = False;
         for rNegativeContentRegExp in oSelf.arNegativeContentRegExps:
           if oSelf.oException: return;
-          oMatch = rNegativeContentRegExp.search(sContent)
+          oMatch = rNegativeContentRegExp.search(sbContent)
           if oMatch:
             bNegativeMatch = True;
             oSelf.fDebug("stop scan: !/%s/ => %s in %s (%fs)" % (rNegativeContentRegExp.pattern, repr(oMatch.group(0)), sFilePath, fnScanTime()));
@@ -102,42 +102,42 @@ class cMultithreadedFileContentMatcher(object):
           continue;
         bSaveRelevantLines = oSelf.uNumberOfRelevantLinesBeforeMatch is not None or oSelf.uNumberOfRelevantLinesAfterMatch is not None;
         if bSaveRelevantLines:
-          oSelf.dRelevant_asLines_by_uLineNumber_by_sFilePath[sFilePath] = {};
+          oSelf.dRelevant_asbLines_by_uLineNumber_by_sFilePath[sFilePath] = {};
         auLineNumbers = set();
         for rContentRegExp in oSelf.arContentRegExps:
           bFound = False;
-          for oMatch in rContentRegExp.finditer(sContent):
+          for oMatch in rContentRegExp.finditer(sbContent):
             bFound = True;
             if oSelf.oException: return;
-            uCurrentLineStartIndex = sContent.rfind("\n", 0, oMatch.start()) + 1;
-            uCurrentLineNumber = sContent.count("\n", 0, uCurrentLineStartIndex) + 1;
+            uCurrentLineStartIndex = sbContent.rfind(b"\n", 0, oMatch.start()) + 1;
+            uCurrentLineNumber = sbContent.count(b"\n", 0, uCurrentLineStartIndex) + 1;
             # Mark the line on which the match starts
             auLineNumbers.add(uCurrentLineNumber);
             # Mark all additional lines in the match as well.
-            uMatchedLinesCount = sContent.count("\n", oMatch.start(), oMatch.end()) + 1;
-            for uMatchedLineCount in xrange(uMatchedLinesCount):
+            uMatchedLinesCount = sbContent.count(b"\n", oMatch.start(), oMatch.end()) + 1;
+            for uMatchedLineCount in range(uMatchedLinesCount):
               auLineNumbers.add(uCurrentLineNumber + uMatchedLineCount);
             oSelf.fDebug("scan: matched /%s/ on line #%d in %s (%fs)" % (rContentRegExp.pattern, uCurrentLineNumber, sFilePath, fnScanTime()));
             if bSaveRelevantLines:
               # Find the start of the first relevant line, by finding the start of the line on which the match starts
               # and going back the requested number of lines, if possible.
               if oSelf.uNumberOfRelevantLinesBeforeMatch:
-                for x in xrange(oSelf.uNumberOfRelevantLinesBeforeMatch):
+                for x in range(oSelf.uNumberOfRelevantLinesBeforeMatch):
                   if uCurrentLineStartIndex == 0:
                     break;
-                  uCurrentLineStartIndex = sContent.rfind("\n", 0, uCurrentLineStartIndex - 1) + 1;
+                  uCurrentLineStartIndex = sbContent.rfind(b"\n", 0, uCurrentLineStartIndex - 1) + 1;
                   uCurrentLineNumber -= 1;
               oSelf.fDebug("scan:   start relevant lines at #%d in %s (%fs)" % (uCurrentLineNumber, sFilePath, fnScanTime()));
               # Find the end of the last relevant line, by adding lines until we reach the end of the match and then
               # continue for the requested number of lines, if possible.
               uAdditionalLinesToAddAfterMatch = oSelf.uNumberOfRelevantLinesAfterMatch or 0;
               while uCurrentLineStartIndex < oMatch.end() or uAdditionalLinesToAddAfterMatch > 0:
-                uCurrentLineEndIndex = sContent.find("\n", uCurrentLineStartIndex);
+                uCurrentLineEndIndex = sbContent.find(b"\n", uCurrentLineStartIndex);
                 if uCurrentLineEndIndex == - 1:
                   uAdditionalLinesToAddAfterMatch = 0;
-                  uCurrentLineEndIndex = len(sContent);
-                sCurrentLine = sContent[uCurrentLineStartIndex:uCurrentLineEndIndex].rstrip("\r");
-                oSelf.dRelevant_asLines_by_uLineNumber_by_sFilePath[sFilePath][uCurrentLineNumber] = sCurrentLine;
+                  uCurrentLineEndIndex = len(sbContent);
+                sbCurrentLine = sbContent[uCurrentLineStartIndex:uCurrentLineEndIndex].rstrip(b"\r");
+                oSelf.dRelevant_asbLines_by_uLineNumber_by_sFilePath[sFilePath][uCurrentLineNumber] = sbCurrentLine;
                 oSelf.fDebug("scan:   relevant line at #%d in %s" % (uCurrentLineNumber, sFilePath));
                 uCurrentLineNumber += 1;
                 if uCurrentLineStartIndex >= oMatch.end():
@@ -157,7 +157,7 @@ class cMultithreadedFileContentMatcher(object):
     finally:
       oSelf.oScanThreadsFinished.fuIncrease();
 #      uFinished = oSelf.oScanThreadsFinished.fuIncrease();
-#      oConsole.fPrint("Scan thread %d/%d done" % (uFinished, oSelf.oScanThreadsStarted.uValue));
+#      oConsole.fOutput("Scan thread %d/%d done" % (uFinished, oSelf.oScanThreadsStarted.uValue));
       oSelf.oFilePathsQueue.put(None);
   
   def fStatusThread(oSelf):
@@ -175,4 +175,4 @@ class cMultithreadedFileContentMatcher(object):
       oSelf.oException = oException;
       raise;
 #    finally:
-#      oConsole.fPrint("status thread done");
+#      oConsole.fOutput("status thread done");

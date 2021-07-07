@@ -1,4 +1,4 @@
-from oConsole import oConsole;
+from mConsole import oConsole;
 
 from mColors import *;
 
@@ -27,29 +27,25 @@ asLogoColors = [s.rstrip() for s in """
 
 def fPrintLogo():
   # We will use the above ASCII and color data to create a list of arguments
-  # that can be passed to oConsole.fPrint in order to output the logo in color:
-  oConsole.fLock();
-  try:
-    for uLineIndex in xrange(len(asLogo)):
-      uCurrentColor = NORMAL;
-      bUnderlined = False;
-      asLogoPrintArguments = [""];
-      sCharsLine = asLogo[uLineIndex];
-      sColorsLine = asLogoColors[uLineIndex];
-      uColorIndex = 0;
-      for uColumnIndex in xrange(len(sCharsLine)):
+  # that can be passed to oConsole.fOutput in order to output the logo in color:
+  for uLineIndex in range(len(asLogo)):
+    uCurrentColor = NORMAL;
+    bUnderlined = False;
+    asLogoPrintArguments = [""];
+    sCharsLine = asLogo[uLineIndex];
+    sColorsLine = asLogoColors[uLineIndex];
+    uColorIndex = 0;
+    for uColumnIndex in range(len(sCharsLine)):
+      sColor = sColorsLine[uColorIndex];
+      uColorIndex += 1;
+      if sColor == "_":
+        bUnderlined = not bUnderlined;
         sColor = sColorsLine[uColorIndex];
         uColorIndex += 1;
-        if sColor == "_":
-          bUnderlined = not bUnderlined;
-          sColor = sColorsLine[uColorIndex];
-          uColorIndex += 1;
-        uColor = (sColor != " " and (0x0F00 + long(sColor, 16)) or NORMAL) + (bUnderlined and UNDERLINE or 0);
-        if uColor != uCurrentColor:
-          asLogoPrintArguments.extend([uColor, ""]);
-          uCurrentColor = uColor;
-        sChar = sCharsLine[uColumnIndex];
-        asLogoPrintArguments[-1] += sChar;
-      oConsole.fPrint(*asLogoPrintArguments);
-  finally:
-    oConsole.fUnlock();
+      uColor = (sColor != " " and (0x0F00 + int(sColor, 16)) or NORMAL) + (bUnderlined and UNDERLINE or 0);
+      if uColor != uCurrentColor:
+        asLogoPrintArguments.extend([uColor, ""]);
+        uCurrentColor = uColor;
+      sChar = sCharsLine[uColumnIndex];
+      asLogoPrintArguments[-1] += sChar;
+    oConsole.fOutput(*asLogoPrintArguments);

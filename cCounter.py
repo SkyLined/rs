@@ -1,8 +1,8 @@
-import Queue;
+import queue;
 
 class cCounter(object):
   def __init__(oSelf, uValue = 0):
-   oSelf.oValueQueue = Queue.Queue();
+   oSelf.oValueQueue = queue.Queue();
    oSelf.oValueQueue.put(uValue);
   
   @property

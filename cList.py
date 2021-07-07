@@ -1,8 +1,8 @@
-import Queue;
+import queue;
 
 class cList(object):
   def __init__(oSelf, axValue = []):
-   oSelf.oValueQueue = Queue.Queue();
+   oSelf.oValueQueue = queue.Queue();
    oSelf.oValueQueue.put(axValue);
   
   @property

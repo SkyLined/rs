@@ -1,5 +1,5 @@
-import os, Queue, threading, time;
-from oConsole import oConsole;
+import os, queue, threading, time;
+from mConsole import oConsole;
 
 from cCounter import cCounter;
 from cDict import cDict;
@@ -13,7 +13,7 @@ def fdoMultithreadedFilePathMatcher(uMaxThreads, asFolderPaths, bRecursive, arPa
 
 class cMultithreadedFilePathMatcher(object):
   def __init__(oSelf, uMaxThreads, asFolderPaths, bRecursive, arPathRegExps, arNegativePathRegExps, bVerbose):
-    oSelf.oUnhandledItemPathsQueue = Queue.Queue();
+    oSelf.oUnhandledItemPathsQueue = queue.Queue();
     oSelf.bRecursive = bRecursive;
     oSelf.arPathRegExps = arPathRegExps;
     oSelf.arNegativePathRegExps = arNegativePathRegExps;
@@ -39,7 +39,7 @@ class cMultithreadedFilePathMatcher(object):
     
     aoThreads = [
       threading.Thread(target = oSelf.fScanThread)
-      for x in xrange(uMaxThreads)
+      for x in range(uMaxThreads)
     ] + [
       threading.Thread(target = oSelf.fStatusThread)
     ];
@@ -51,7 +51,7 @@ class cMultithreadedFilePathMatcher(object):
       oThread.join();
   
   def fDebug(oSelf):
-#    oConsole.fPrint("%d/%d/%d/%d" % (oSelf.oNumberOfFilesFound.uValue, oSelf.oNumberOfFoldersFound.uValue, oSelf.oNumberOfItemsFound.uValue, oSelf.oNumberOfItemsCompleted.uValue));
+#    oConsole.fOutput("%d/%d/%d/%d" % (oSelf.oNumberOfFilesFound.uValue, oSelf.oNumberOfFoldersFound.uValue, oSelf.oNumberOfItemsFound.uValue, oSelf.oNumberOfItemsCompleted.uValue));
     assert oSelf.oNumberOfFilesFound.uValue + oSelf.oNumberOfFoldersFound.uValue <= oSelf.oNumberOfItemsFound.uValue, \
         "111!";
     assert oSelf.oNumberOfItemsCompleted.uValue <= oSelf.oNumberOfItemsFound.uValue, \
@@ -64,7 +64,7 @@ class cMultithreadedFilePathMatcher(object):
         sItemPath = oSelf.oUnhandledItemPathsQueue.get();
         if sItemPath is None:
           break;
-        sFullItemPath = u"\\\\?\\" + unicode(sItemPath);
+        sFullItemPath = "\\\\?\\" + str(sItemPath);
         try:
           asSubItemNames = os.listdir(sFullItemPath);
         except Exception:
@@ -110,7 +110,7 @@ class cMultithreadedFilePathMatcher(object):
       raise;
     finally:
       oSelf.oScanThreadsFinished.fuIncrease();
-#      oConsole.fPrint("scan thread %d/%d done" % (oSelf.oScanThreadsFinished.uValue, oSelf.oScanThreadsStarted.uValue));
+#      oConsole.fOutput("scan thread %d/%d done" % (oSelf.oScanThreadsFinished.uValue, oSelf.oScanThreadsStarted.uValue));
       oSelf.oUnhandledItemPathsQueue.put(None);
   
   def fHandleFile(oSelf, sItemPath):
@@ -122,13 +122,13 @@ class cMultithreadedFilePathMatcher(object):
         if rNegativePathRegExp.search(sItemPath):
           # Matching negative reg.exp. means don't add (and stop matching).
           if oSelf.bVerbose:
-            oConsole.fPrint(DIM, "  - %s (matches negative reg.exp.)" % sItemPath);
+            oConsole.fOutput(DIM, "  - %s (matches negative reg.exp.)" % sItemPath);
           return;
       # Not matching negative reg.exp. means maybe add:
       if not oSelf.arPathRegExps:
         # Not having positive reg.exps. means add:
         if oSelf.bVerbose:
-          oConsole.fPrint("  + %s (does not match any negative reg.exp.)" % sItemPath);
+          oConsole.fOutput("  + %s (does not match any negative reg.exp.)" % sItemPath);
       else:
         # Having positive reg.exps. means add if matched:
         for rPathRegExp in oSelf.arPathRegExps:
@@ -144,15 +144,15 @@ class cMultithreadedFilePathMatcher(object):
               asSubMatchesOutput.append(".");
               oConsole.fLock();
               try:
-                oConsole.fPrint("  + %s (matches reg.exp.)" % sItemPath);
-                oConsole.fPrint(DIM, "    Sub-matches: ", *asSubMatchesOutput);
+                oConsole.fOutput("  + %s (matches reg.exp.)" % sItemPath);
+                oConsole.fOutput(DIM, "    Sub-matches: ", *asSubMatchesOutput);
               finally:
                 oConsole.fUnlock();
             break;
           else:
             # Not matching positive reg.exps. means don't add.
             if oSelf.bVerbose:
-              oConsole.fPrint(DIM, "  - %s (does not match any reg.exp.)" % sItemPath);
+              oConsole.fOutput(DIM, "  - %s (does not match any reg.exp.)" % sItemPath);
             return;
     oSelf.odosMatchedFilePaths.fSet(sItemPath, oMatch);
   
@@ -179,4 +179,4 @@ class cMultithreadedFilePathMatcher(object):
       oSelf.oException = oException;
       raise;
 #    finally:
-#      oConsole.fPrint("status thread done");
+#      oConsole.fOutput("status thread done");
