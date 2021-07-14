@@ -31,3 +31,6 @@
 [submodule "modules\\mFileSystemItem"]
 	path = modules\\mFileSystemItem
 	url = https://github.com/SkyLined/mFileSystemItem
+[submodule "modules\\mConsole"]
+	path = modules\\mConsole
+	url = https://github.com/SkyLined/mConsole
