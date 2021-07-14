@@ -28,3 +28,6 @@
 [submodule "modules\\mNotProvided"]
 	path = modules\\mNotProvided
 	url = https://github.com/SkyLined/mNotProvided
+[submodule "modules\\mFileSystemItem"]
+	path = modules\\mFileSystemItem
+	url = https://github.com/SkyLined/mFileSystemItem
