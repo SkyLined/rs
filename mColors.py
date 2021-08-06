@@ -33,10 +33,11 @@ FILE_CUT_LINENO =   0xFF09; # The next match line number when the content is cut
 FILE_CUT_PAD =      0xFF08; # The padding after the file name and line number when the content is cut into pieces
 
 LINENO_COLOMN =     0xFF08; # The line number before unmatched file content lines
-LINENO_COLOMN_MATCH = 0xFF90; # The line number before matched file content lines
+LINENO_COLOMN_MATCH = 0xFF19; # The line number before matched file content lines
 
 LINENO_CONTENT_SEPARATOR = 0xFF08; # The separator between the line number and the file content line
+LINENO_CONTENT_SEPARATOR_MATCH = 0xFF18; # The separator between the line number and the file content line
 
 CONTENT =           0xFF07; # The unmatched file content lines
-CONTENT_MATCH =     0xFF0B; # The matched file content lines
+CONTENT_MATCH =     0xFF1B; # The matched file content lines
 CONTENT_EOL =       0xFF08; # End of file content line marker

@@ -366,11 +366,11 @@ try:
                 if uPreviousLineNumber is not None and uRelevantLineNumber > uPreviousLineNumber + 1:
                   oConsole.fOutput(
                     FILE_BOX, " ",
-                    FILE_CUT_LINENO_COLOMN, "\xFA" * 6,
+                    FILE_CUT_LINENO_COLOMN, "\xB7" * 6,
                     LINENO_CONTENT_SEPARATOR, ":",
                     FILE_CUT_NAME, " ", sFilePath,
                     FILE_CUT_LINENO, "/%d" % auMatchedLineNumbers[uNextMatchedLineIndex],
-                    FILE_CUT_PAD, " ", sPadding = "\xFA",
+                    FILE_CUT_PAD, " ", sPadding = "\xB7",
                  );
                 sbRelevantLine = oContentMatchingResults.dRelevant_asbLines_by_uLineNumber_by_sFilePath[sFilePath][uRelevantLineNumber];
                 bMatchedLine = uNextMatchedLineIndex < len(auMatchedLineNumbers) and uRelevantLineNumber == auMatchedLineNumbers[uNextMatchedLineIndex];
@@ -379,9 +379,9 @@ try:
                 oConsole.fOutput(
                   FILE_BOX, " ",
                   bMatchedLine and LINENO_COLOMN_MATCH or LINENO_COLOMN, "%6d" % uRelevantLineNumber,
-                  LINENO_CONTENT_SEPARATOR, "\xB3",
+                  bMatchedLine and LINENO_CONTENT_SEPARATOR_MATCH or LINENO_CONTENT_SEPARATOR, "\u2502",
                   bMatchedLine and CONTENT_MATCH or CONTENT, str(sbRelevantLine, 'latin1'),
-                  CONTENT_EOL, "\x1B\xD9",
+                  CONTENT_EOL, "\u2190\u2193",
                   uConvertTabsToSpaces = uConvertTabsToSpaces,
                 );
                 uPreviousLineNumber = uRelevantLineNumber;
