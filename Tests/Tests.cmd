@@ -22,7 +22,7 @@ PUSHD "%~dp0"
 ECHO   * Test search with command execution and redirected output... 
 REM Looking for this -> @@@MARKER@@@
 REM Here's another on a different line: @@@MARKER@@@
-CALL "%~dp0\..\rs.cmd" p/\\Tests\.cmd$/  "c/@@@(M)(A)(R)(K)(E)(R)@@@/" -- ECHO SUCCESS \\{f}=[\{f}] f=[{f}] l=[{l},{l},{l}] 0=[{0}] 1=[{1}] 2=[{2}] 3=[{3}] 4=[{4}] 5=[{5}] 6=[{6}] 7=[{7}] 8=[{8}] 9=[{9}] 10=[{10}] d=[{d}] p=[{p}] n=[{n}] x=[{x}] dpnx=[{dpnx}]
+CALL "%~dp0\..\rs.cmd" "n/\ATests\.cmd\Z/" "c/@@@(M)(A)(R)(K)(E)(R)@@@/" --verbose -- ECHO SUCCESS \\{f}=[\{f}] f=[{f}] l=[{l},{l},{l}] 0=[{0}] 1=[{1}] 2=[{2}] 3=[{3}] 4=[{4}] 5=[{5}] 6=[{6}] 7=[{7}] 8=[{8}] 9=[{9}] 10=[{10}] d=[{d}] p=[{p}] n=[{n}] x=[{x}] dpnx=[{dpnx}]
 IF ERRORLEVEL 2 (
   POPD & GOTO :ERROR
 )

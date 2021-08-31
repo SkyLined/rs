@@ -13,12 +13,14 @@ WARNING =           0x0F06; # Yellow
 WARNING_INFO =      0x0F0E; # Bright yellow
 UNDERLINE =        0x10000;
 
-BAR =               0xFF1B; # Light cyan on Dark blue
-PROGRESS =          0xFFB1; # Dark blue on light cyan
+BAR =               0xFF19; # Bright blue on Dark blue
+PROGRESS =          0xFFB9; # Dark blue on bright blue
+SUB_PROGRESS =      0xFFB1; # Dark blue on bright cyan
 
 oConsole.uDefaultColor = NORMAL;
 oConsole.uDefaultBarColor = BAR;
 oConsole.uDefaultProgressColor = PROGRESS;
+oConsole.uDefaultSubProgressColor = SUB_PROGRESS;
 
 FILE_NAME =         0xFF0B; # The file name
 FILE_LINENO =       0xFF09; # The line numbers in the file after the file name.

@@ -1,4 +1,4 @@
-import json, math, multiprocessing, os, re, sys;
+import math, multiprocessing, os, re, sys;
 
 """
           dS'                          dS'                                      
@@ -47,8 +47,17 @@ try:
     
     sComSpec = os.environ["COMSPEC"];
     uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
+    grRegExpArgument = re.compile(
+      r"\A"
+      r"(!?[cpn]?|[cpn]?!?)"
+      r"\/"
+      r"(.+)"
+      r"\/"
+      r"([ilmsux]*)"
+      r"\Z"
+    );
     
-    def fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auLineNumbers = []):
+    def fRunCommand(asCommandTemplate, sFilePath, o0LastPathMatch, auLineNumbers = []):
       asCommandTemplate = [s for s in asCommandTemplate];
       sDrivePath, sNameExtension = sFilePath.rsplit("\\", 1);
       if ":" in sDrivePath:
@@ -75,7 +84,7 @@ try:
         if sChars[0] in "0123456789":
           uIndex = int(sChars);
           try:
-            sSubstitute = oPathMatch.group(uIndex);
+            sSubstitute = o0LastPathMatch.group(uIndex) if o0LastPathMatch else "";
           except IndexError:
             sSubstitute = "";
         else:
@@ -117,16 +126,21 @@ try:
         for sFlag in sFlags
       ]));
     
+    def fsRegExpToString(rRegExp):
+      return str(rRegExp.pattern, "ascii", "strict") if isinstance(rRegExp.pattern, bytes) else rRegExp.pattern;
+    
     # Make sure the Python binary is up to date; we don't want our users to unknowingly run outdated software as this is
     # likely to cause unexpected issues.
     fCheckPythonVersion("rs", asTestedPythonVersions, "https://github.com/SkyLined/rs/issues/new")
     
-    doPathMatch_by_sSelectedFilePath = {};
+    do0LastPathMatch_by_sSelectedFilePath = {};
     asFolderPaths = set();
     arContentRegExps = [];
     arNegativeContentRegExps = [];
     arPathRegExps = [];
     arNegativePathRegExps = [];
+    arNameRegExps = [];
+    arNegativeNameRegExps = [];
     bRecursive = False;
     bVerbose = False;
     bPause = False;
@@ -202,30 +216,33 @@ try:
           os._exit(2);
       elif s0LowerName in ["l", "lines"]:
         # valid formats : "C" "-B", "-B+A" "+A"
-        oBeforeAfterMatch = re.match(r"^(?:(\d+)|(?:\-(\d+))?(?:(?:,|,?\+)(\d+))?)$", s0Value);
-        if not oBeforeAfterMatch:
+        o0BeforeAfterMatch = re.match(r"^(?:(\d+)|(?:\-(\d+))?(?:(?:,|,?\+)(\d+))?)$", s0Value) if s0Value else None;
+        if o0BeforeAfterMatch is None:
           oConsole.fOutput(ERROR, "- The value for ", ERROR_INFO, s0Value, ERROR, " must be a valid range.");
           oConsole.fOutput("  Try ", INFO, "N", NORMAL, ", ", INFO, "-N", NORMAL, ", ", INFO, "-N+N", NORMAL, ", or ", INFO, "+N", NORMAL, ".");
           oConsole.fOutput("  Where each N is an integer. '-' prefix indicates before, '+' prefix indices after the match.");
           os._exit(2);
-        suBeforeAndAfer, suBefore, suAfter = oBeforeAfterMatch.groups();
+        suBeforeAndAfer, suBefore, suAfter = o0BeforeAfterMatch.groups();
         if suBeforeAndAfer:
           uNumberOfRelevantLinesBeforeMatch = uNumberOfRelevantLinesAfterMatch = int(suBeforeAndAfer);
         else:
           uNumberOfRelevantLinesBeforeMatch = int(suBefore or 0);
           uNumberOfRelevantLinesAfterMatch = int(suAfter or 0);
       elif s0LowerName or s0Value: # arguments before "--"
-        oRegExpMatch = re.match(r"^([cp]?)(!?)\/(.+)\/([ilmsux]*)$", sArgument);
+        oRegExpMatch = grRegExpArgument.match(sArgument);
         if oRegExpMatch:
-          sContentOrPath, sNegative, sRegExp, sFlags = oRegExpMatch.groups();
+          sPrefixFlags, sRegExp, sFlags = oRegExpMatch.groups();
+          bNegative = "!" in sPrefixFlags;
+          bPath = "p" in sPrefixFlags;
+          bFileOrFolderName = "n" in sPrefixFlags;
           # Paths are type string, file contents are type bytes; reg.exp. must conform:
-          sxRegExp = sRegExp if sContentOrPath == "p" else bytes(sRegExp, 'latin1');
+          sxRegExp = sRegExp if (bPath or bFileOrFolderName) else bytes(sRegExp, 'latin1');
           try:
             rRegExp = frRegExp(sxRegExp, sFlags);
           except Exception as oException:
             oConsole.fOutput(
               ERROR, "- Invalid regular expressions ",
-              ERROR_INFO, sContentOrPath, sNegative,
+              ERROR_INFO, sPrefixFlags,
               ERROR, "/",
               ERROR_INFO, sRegExp,
               ERROR, "/",
@@ -234,18 +251,23 @@ try:
             oConsole.fOutput("  ", ERROR_INFO, oException.message, ERROR, ".");
             os._exit(2);
           else:
-            if sContentOrPath == "p":
-              if sNegative == "!":
+            if bPath:
+              if bNegative:
                 arNegativePathRegExps.append(rRegExp);
               else:
                 arPathRegExps.append(rRegExp);
+            elif bFileOrFolderName:
+              if bNegative:
+                arNegativeNameRegExps.append(rRegExp);
+              else:
+                arNameRegExps.append(rRegExp);
             else:
-              if sNegative == "!":
+              if bNegative:
                 arNegativeContentRegExps.append(rRegExp);
               else:
                 arContentRegExps.append(rRegExp);
         elif os.path.isfile(sArgument):
-          doPathMatch_by_sSelectedFilePath[sArgument] = None; # User supplied; no regular expression match
+          do0LastPathMatch_by_sSelectedFilePath[sArgument] = None; # User supplied; no regular expression match
         elif os.path.isdir(sArgument):
           asFolderPaths.add(sArgument);
         else:
@@ -263,10 +285,14 @@ try:
         asCommandTemplate = ["uedit64.exe", "{f}"];
       else:
         asCommandTemplate = ["uedit64.exe", '"{~f}/{l}"']; # line number must be inside quotes
-    if not arContentRegExps and not arNegativeContentRegExps and not arPathRegExps and not arNegativePathRegExps:
+    if (
+      not arContentRegExps and not arNegativeContentRegExps
+      and not arPathRegExps and not arNegativePathRegExps
+      and not arNameRegExps and not arNegativeNameRegExps
+    ):
       oConsole.fOutput(ERROR, "- Missing regular expression");
       os._exit(2);
-    if not doPathMatch_by_sSelectedFilePath and not asFolderPaths:
+    if not do0LastPathMatch_by_sSelectedFilePath and not asFolderPaths:
       asFolderPaths.add(os.getcwd());
     if bRecursive:
       if not asFolderPaths:
@@ -282,23 +308,30 @@ try:
       if bRecursive:
         oConsole.fOutput("+ Folders will be traversed recursively");
       
-      if doPathMatch_by_sSelectedFilePath:
+      if do0LastPathMatch_by_sSelectedFilePath:
         oConsole.fOutput("+ Selected files:");
-        for sFilePath in fasSortedAlphabetically(doPathMatch_by_sSelectedFilePath.keys()):
+        for sFilePath in fasSortedAlphabetically(do0LastPathMatch_by_sSelectedFilePath.keys()):
           oConsole.fOutput("  + ", sFilePath);
       if arPathRegExps or arNegativePathRegExps:
         oConsole.fOutput("+ File path regular expressions:");
       for rNegativePathRegExp in arNegativePathRegExps:
-        oConsole.fOutput("  - ", json.dumps(rNegativePathRegExp.pattern)[1:-1]);
+        oConsole.fOutput("  - ", fsRegExpToString(rNegativePathRegExp));
       for rPathRegExp in arPathRegExps:
-        oConsole.fOutput("  + ", json.dumps(rPathRegExp.pattern)[1:-1]);
+        oConsole.fOutput("  + ", fsRegExpToString(rPathRegExp));
+      
+      if arNameRegExps or arNegativeNameRegExps:
+        oConsole.fOutput("+ File/folder name regular expressions:");
+      for rNegativePathRegExp in arNegativeNameRegExps:
+        oConsole.fOutput("  - ", fsRegExpToString(rNegativePathRegExp));
+      for rPathRegExp in arNameRegExps:
+        oConsole.fOutput("  + ", fsRegExpToString(rPathRegExp));
       
       if arContentRegExps or arNegativeContentRegExps:
         oConsole.fOutput("+ File content regular expressions:");
       for rNegativeContentRegExp in arNegativeContentRegExps:
-        oConsole.fOutput("  - ", json.dumps(rNegativeContentRegExp.pattern)[1:-1]);
+        oConsole.fOutput("  - ", fsRegExpToString(rNegativeContentRegExp));
       for rContentRegExp in arContentRegExps:
-        oConsole.fOutput("  + ", json.dumps(rContentRegExp.pattern)[1:-1]);
+        oConsole.fOutput("  + ", fsRegExpToString(rContentRegExp));
       if bUnicode:
         oConsole.fOutput("+ All '\\0' characters will be removed from the file contents before scanning,");
         oConsole.fOutput("  to convert UTF-16 Unicode encoded ASCII characters back to ASCII.");
@@ -309,28 +342,49 @@ try:
         oConsole.fOutput("+ After scanning is complete, wait for the user to press ENTER.");
     
     if asFolderPaths:
-      doPathMatch_by_sSelectedFilePath.update(fdoMultithreadedFilePathMatcher(uMaxThreads, asFolderPaths, bRecursive, arPathRegExps, arNegativePathRegExps, bVerbose));
-    if not doPathMatch_by_sSelectedFilePath:
-      if arPathRegExps or arNegativePathRegExps:
-        oConsole.fOutput(ERROR, "No files found that matched any of the path regular expressions.");
+      do0LastPathMatch_by_sSelectedFilePath.update(fdoMultithreadedFilePathMatcher(
+        uMaxThreads,
+        asFolderPaths,
+        bRecursive,
+        arPathRegExps, arNegativePathRegExps,
+        arNameRegExps, arNegativeNameRegExps,
+        bVerbose
+      ));
+    if not do0LastPathMatch_by_sSelectedFilePath:
+      if arPathRegExps or arNegativePathRegExps or arNameRegExps or arNegativeNameRegExps:
+        oConsole.fOutput(
+          ERROR, "- No files found that matched any of the ",
+          " and ".join([s for s in [
+            "path" if (arPathRegExps or arNegativePathRegExps) else None,
+            "name" if (arNameRegExps or arNegativeNameRegExps) else None,
+          ] if s]),
+          " regular expressions.");
       else:
         oConsole.fOutput(ERROR, "No files found.");
       uResult = 0;
     elif not arContentRegExps and not arNegativeContentRegExps:
-      for sFilePath in fasSortedAlphabetically(doPathMatch_by_sSelectedFilePath.keys()):
-        oConsole.fOutput(sFilePath); # Strip "\\?\"
+      for sFilePath in fasSortedAlphabetically(do0LastPathMatch_by_sSelectedFilePath.keys()):
+        oConsole.fOutput(FILE_NAME, sFilePath); # Strip "\\?\"
         if asCommandTemplate:
-          oPathMatch = doPathMatch_by_sSelectedFilePath[sFilePath];
-          fRunCommand(asCommandTemplate, sFilePath, oPathMatch);
-      uResult = len(doPathMatch_by_sSelectedFilePath) > 0 and 1 or 0;
+          o0PathMatch = do0LastPathMatch_by_sSelectedFilePath[sFilePath];
+          fRunCommand(asCommandTemplate, sFilePath, o0PathMatch);
+      uResult = len(do0LastPathMatch_by_sSelectedFilePath) > 0 and 1 or 0;
     else:
-      oContentMatchingResults = foMultithreadedFileContentMatcher(uMaxThreads, list(doPathMatch_by_sSelectedFilePath.keys()), arContentRegExps, arNegativeContentRegExps, bUnicode, uNumberOfRelevantLinesBeforeMatch, uNumberOfRelevantLinesAfterMatch);
+      oContentMatchingResults = foMultithreadedFileContentMatcher(uMaxThreads, list(do0LastPathMatch_by_sSelectedFilePath.keys()), arContentRegExps, arNegativeContentRegExps, bUnicode, uNumberOfRelevantLinesBeforeMatch, uNumberOfRelevantLinesAfterMatch);
       if bVerbose:
         for sFilePath in oContentMatchingResults.asNotScannedFilePaths:
           oConsole.fOutput(DIM, "- ", sFilePath);
       if not oContentMatchingResults.dMatched_auLineNumbers_by_sFilePath:
-        if arPathRegExps or arNegativePathRegExps:
-          oConsole.fOutput(ERROR, "No match found in %d files that matched the path regular expressions." % len(doPathMatch_by_sSelectedFilePath));
+        if arPathRegExps or arNegativePathRegExps or arNameRegExps or arNegativeNameRegExps:
+          oConsole.fOutput(
+            ERROR, "No match found in ",
+            str(len(do0LastPathMatch_by_sSelectedFilePath)),
+            " files that matched the ",
+            " and ".join([s for s in [
+              "path" if (arPathRegExps or arNegativePathRegExps) else None,
+              "name" if (arNameRegExps or arNegativeNameRegExps) else None,
+            ] if s]),
+            " regular expressions.");
         else:
           oConsole.fOutput(ERROR, "No match found in any files.");
         uResult = 0;
@@ -386,16 +440,16 @@ try:
                 );
                 uPreviousLineNumber = uRelevantLineNumber;
           if asCommandTemplate:
-            oPathMatch = doPathMatch_by_sSelectedFilePath[sFilePath];
+            oPathMatch = do0LastPathMatch_by_sSelectedFilePath[sFilePath];
             fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auMatchedLineNumbers);
         if not bFirst:
           oConsole.fOutput();
       if bVerbose:
-        if oContentMatchingResults.asNotScannedFilePaths > 0:
+        if len(oContentMatchingResults.asNotScannedFilePaths) > 0:
           oConsole.fOutput("Scanned %d/%d files, %s bytes." % (
-              len(doPathMatch_by_sSelectedFilePath) - len(oContentMatchingResults.asNotScannedFilePaths), len(doPathMatch_by_sSelectedFilePath), fsBytesToHumanReadableString(oContentMatchingResults.uScannedBytes)));
+              len(do0LastPathMatch_by_sSelectedFilePath) - len(oContentMatchingResults.asNotScannedFilePaths), len(do0LastPathMatch_by_sSelectedFilePath), fsBytesToHumanReadableString(oContentMatchingResults.uScannedBytes)));
         else:
-          oConsole.fOutput("Scanned %d files, %s bytes." % (len(doPathMatch_by_sSelectedFilePath), fsBytesToHumanReadableString(oContentMatchingResults.uScannedBytes)));
+          oConsole.fOutput("Scanned %d files, %s bytes." % (len(do0LastPathMatch_by_sSelectedFilePath), fsBytesToHumanReadableString(oContentMatchingResults.uScannedBytes)));
     if bPause:
       input();
     os._exit(uResult);
