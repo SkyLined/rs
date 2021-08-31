@@ -84,7 +84,8 @@ def fPrintUsageInformation():
     oConsole.fOutput("      ", INFO, "{f}", NORMAL, " - the full path of the file (== ", INFO, "{dpnx}", NORMAL, ").");
     oConsole.fOutput("    Note: The above arguments can be combined: ", INFO, "{dp}", NORMAL, " will be replaced with the");
     oConsole.fOutput("    file's drive and path, and ", INFO, "{nx}", NORMAL, " will be replaced by the file's name and");
-    oConsole.fOutput("    extension.");
+    oConsole.fOutput("    extension. The values for these keys will be surrounded by quotes unless");
+    oConsole.fOutput("    preceed them with ", INFO, "~", NORMAL, " (e.g. ", INFO, "\"{~n}{~x}\"", NORMAL, " == ", INFO, "{nx}", NORMAL, ").");
     oConsole.fOutput("      ", INFO, "{l}", NORMAL, " - the line number on which the first match was found.");
     oConsole.fOutput("    Note: Repeating {l} gives you the next line number on which a match was");
     oConsole.fOutput("    found, or -1 if there are no more matches: {l},{l},{l} will be replaced with");
