@@ -1,6 +1,6 @@
 from mConsole import oConsole;
 
-from mColors import *;
+from mColorsAndChars import *;
 
 asLogo = [s.rstrip() for s in """
           dS'                          dS'                                      
@@ -25,11 +25,11 @@ asLogoColors = [s.rstrip() for s in """
     999                          999                                            """.split("""
 """)];
 
-def fPrintLogo():
+def fOutputLogo():
   # We will use the above ASCII and color data to create a list of arguments
   # that can be passed to oConsole.fOutput in order to output the logo in color:
   for uLineIndex in range(len(asLogo)):
-    uCurrentColor = NORMAL;
+    uCurrentColor = COLOR_NORMAL;
     bUnderlined = False;
     asLogoPrintArguments = [""];
     sCharsLine = asLogo[uLineIndex];
@@ -42,7 +42,7 @@ def fPrintLogo():
         bUnderlined = not bUnderlined;
         sColor = sColorsLine[uColorIndex];
         uColorIndex += 1;
-      uColor = (sColor != " " and (0x0F00 + int(sColor, 16)) or NORMAL) + (bUnderlined and UNDERLINE or 0);
+      uColor = (sColor != " " and (0x0F00 + int(sColor, 16)) or COLOR_NORMAL) + (bUnderlined and CONSOLE_UNDERLINE or 0);
       if uColor != uCurrentColor:
         asLogoPrintArguments.extend([uColor, ""]);
         uCurrentColor = uColor;

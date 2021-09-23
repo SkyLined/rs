@@ -3,7 +3,7 @@ from mConsole import oConsole;
 
 from cCounter import cCounter;
 from cDict import cDict;
-from mColors import *;
+from mColorsAndChars import *;
 
 giBarLength = 80;
 
@@ -28,12 +28,12 @@ def fdoMultithreadedFilePathMatcher(
 def fVerboseMatchOuput(sChar, sItemPath, sReason, oMatch):
   oConsole.fLock();
   try:
-    oConsole.fOutput("  ", sChar, " ", sItemPath, DIM, " (matches ", sReason, " reg.exp. ", oMatch.re.pattern, ")");
+    oConsole.fOutput("  ", sChar, " ", sItemPath, COLOR_DIM, " (matches ", sReason, " reg.exp. ", oMatch.re.pattern, ")");
     if len(oMatch.groups()):
       asSubMatchesOutput = [];
       for sSubMatch in oMatch.groups():
-        asSubMatchesOutput += [", " if len(asSubMatchesOutput) else "", NORMAL, sSubMatch, DIM];
-      oConsole.fOutput(DIM, "    Sub-matches: ", asSubMatchesOutput, ".");
+        asSubMatchesOutput += [", " if len(asSubMatchesOutput) else "", COLOR_NORMAL, sSubMatch, COLOR_DIM];
+      oConsole.fOutput(COLOR_DIM, "    Sub-matches: ", asSubMatchesOutput, ".");
   finally:
     oConsole.fUnlock();
 
@@ -64,7 +64,12 @@ class cMultithreadedFilePathMatcher(object):
     oSelf.oScanThreadsFinished = cCounter(0);
     
     if oSelf.bVerbose:
-      oConsole.fOutput("* Scanning ", str(len(asFolderPaths)), " folder paths", " (and descendants)" if bRecursive else "", "...");
+      oConsole.fOutput(
+        COLOR_BUSY, CHAR_BUSY,
+        COLOR_NORMAL, " Scanning ",
+        COLOR_INFO, str(len(asFolderPaths)),
+        COLOR_NORMAL, " folder paths", " (and descendants)" if bRecursive else "", "...",
+      );
     for sFolderPath in set(asFolderPaths):
       oSelf.oNumberOfItemsFound.fuIncrease();
       if os.path.isdir(sFolderPath):
@@ -164,7 +169,12 @@ class cMultithreadedFilePathMatcher(object):
             oLastPathMatch = oMatch;
           else:
             if oSelf.bVerbose:
-              oConsole.fOutput("  - ", sItemPath, DIM, " (does not match path reg.exp. ", rPathRegExp.pattern, ")");
+              oConsole.fOutput(
+                "  ",
+                COLOR_SELECT_NO, CHAR_SELECT_NO,
+                COLOR_NORMAL, " ", sItemPath,
+                COLOR_DIM, " (does not match path reg.exp. ", rPathRegExp.pattern, ")",
+              );
             return;
       if oSelf.arNameRegExps:
         for rNameRegExp in oSelf.arNameRegExps:
@@ -174,16 +184,30 @@ class cMultithreadedFilePathMatcher(object):
               fVerboseMatchOuput("*", sItemPath, "name", oMatch);
           else:
             if oSelf.bVerbose:
-              oConsole.fOutput("  - ", sItemPath, DIM, " (does not match name reg.exp. ", rNameRegExp.pattern, ")");
+              oConsole.fOutput(
+                "  ",
+                COLOR_SELECT_NO, CHAR_SELECT_NO,
+                COLOR_NORMAL, " ", sItemPath,
+                COLOR_DIM, " (does not match name reg.exp. ", rNameRegExp.pattern, ")",
+              );
             return;
       if oSelf.bVerbose:
         sMatchedExpressionTypes = " and ".join([s for s in [
           "path" if oSelf.arPathRegExps else None,
           "name" if oSelf.arNameRegExps else None,
         ] if s]);
-        oConsole.fOutput("  + ", sItemPath, DIM, " (matches all ", sMatchedExpressionTypes, " reg.exp.)");
+        oConsole.fOutput(
+          "  ",
+          COLOR_SELECED, CHAR_SELECT_YES,
+          COLOR_NORMAL, " ", sItemPath,
+          COLOR_DIM, " (matches all ", sMatchedExpressionTypes, " reg.exp.)",
+        );
     elif oSelf.bVerbose:
-      oConsole.fOutput("  + ", sItemPath);
+      oConsole.fOutput(
+        "  ",
+        COLOR_SELECED, CHAR_SELECT_YES,
+        COLOR_NORMAL, " ", sItemPath,
+      );
     oSelf.odosMatchedFilePaths.fSet(sItemPath, oLastPathMatch);
   
   def fHandleFolder(oSelf, sItemPath, asSubItemNames):
@@ -208,10 +232,23 @@ class cMultithreadedFilePathMatcher(object):
           oMatch = rPathRegExp.search(sItemPath);
           if not oMatch:
             if oSelf.bVerbose:
-              oConsole.fOutput("  - ", sItemPath, DIM, "\\* (does not match path reg.exp. ", rPathRegExp.pattern, ")");
+              oConsole.fOutput(
+                "  ",
+                COLOR_SELECT_NO, CHAR_SELECT_NO,
+                COLOR_NORMAL, " ", sItemPath,
+                COLOR_DIM, "\\* (does not match path reg.exp. ", rPathRegExp.pattern, ")",
+              );
             return;
     if oSelf.bVerbose:
-      oConsole.fOutput("  * Scanning ", str(len(asSubItemNames)), " descendants of folder ", sItemPath, DIM, " (matches all path reg.exp.)");
+      oConsole.fOutput(
+        "  ",
+        COLOR_BUSY, CHAR_BUSY,
+        COLOR_NORMAL, " Scanning ",
+        COLOR_INFO, str(len(asSubItemNames)),
+        COLOR_NORMAL, " descendants of folder ",
+        COLOR_INFO, sItemPath,
+        COLOR_DIM, " (matches all path reg.exp.)",
+      );
     oSelf.oNumberOfItemsFound.fuAdd(len(asSubItemNames));
     for sSubItemName in asSubItemNames:
       sSubItemPath = os.path.join(sItemPath, sSubItemName);

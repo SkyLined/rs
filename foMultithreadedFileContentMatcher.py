@@ -3,7 +3,7 @@ from mConsole import oConsole;
 
 from cCounter import cCounter;
 from cList import cList;
-from mColors import *;
+from mColorsAndChars import *;
 
 bDebug = False;
 

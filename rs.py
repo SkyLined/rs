@@ -1,4 +1,4 @@
-import math, multiprocessing, os, re, sys;
+﻿import math, multiprocessing, os, re, sys;
 
 """
           dS'                          dS'                                      
@@ -26,6 +26,7 @@ except ModuleNotFoundError as oException:
     raise;
   m0DebugOutput = None;
 
+guExitCodeInternalError = 1; # Just in case mExitCodes is not loaded, as we need this later.
 try:
   from mConsole import oConsole;
   import mWindowsAPI;
@@ -36,13 +37,47 @@ try:
   from fdoMultithreadedFilePathMatcher import fdoMultithreadedFilePathMatcher;
   from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
   from fatsArgumentLowerNameAndValue import fatsArgumentLowerNameAndValue;
-  from mColors import *;
+  from mColorsAndChars import *;
+  from mExitCodes import *;
   
-  if __name__ == "__main__":
-    oConsole.uDefaultColor = NORMAL;
-    oConsole.uDefaultBarColor = BAR;
-    oConsole.uDefaultProgressColor = PROGRESS;
+  def frRegExp(sRegExp, sFlags):
+    return re.compile(sRegExp, sum([
+      {"i": re.I, "l":re.L, "m":re.M, "s": re.S, "u": re.U, "x": re.X}[sFlag]
+      for sFlag in sFlags
+    ]));
+  
+  def fsRegExpToString(rRegExp):
+    return str(rRegExp.pattern, "ascii", "strict") if isinstance(rRegExp.pattern, bytes) else rRegExp.pattern;
     
+  def fxProcessBooleanArgument(sArgumentName, s0Value, u0CanAlsoBeAnIntegerLargerThan = None):
+    if s0Value is None or s0Value.lower() == "true":
+      return True;
+    if s0Value.lower() == "false":
+      return False;
+    if u0CanAlsoBeAnIntegerLargerThan is not None:
+      try:
+        uValue = int(s0Value);
+      except:
+        pass;
+      else:
+        if uValue > u0CanAlsoBeAnIntegerLargerThan:
+          return uValue;
+    oConsole.fOutput(
+      COLOR_ERROR, CHAR_ERROR,
+      COLOR_NORMAL, " The value for ",
+      COLOR_INFO, sArgument,
+      COLOR_NORMAL, " must be \"",
+      COLOR_INFO, "true",
+      COLOR_NORMAL, "\" (default) or \"",
+      COLOR_INFO, "false",
+      COLOR_NORMAL, "\"",
+      [
+        " or an integer larger than ", COLOR_INFO, str(u0CanAlsoBeAnIntegerLargerThan), COLOR_NORMAL,
+      ] if u0CanAlsoBeAnIntegerLargerThan is not None else [],
+      ".",
+    );
+    sys.exit(guExitCodeBadArgument);
+  if __name__ == "__main__":
     asTestedPythonVersions = ["3.9.1"];
     
     sComSpec = os.environ["COMSPEC"];
@@ -120,15 +155,6 @@ try:
       );
       oProcess.fbWait();
     
-    def frRegExp(sRegExp, sFlags):
-      return re.compile(sRegExp, sum([
-        {"i": re.I, "l":re.L, "m":re.M, "s": re.S, "u": re.U, "x": re.X}[sFlag]
-        for sFlag in sFlags
-      ]));
-    
-    def fsRegExpToString(rRegExp):
-      return str(rRegExp.pattern, "ascii", "strict") if isinstance(rRegExp.pattern, bytes) else rRegExp.pattern;
-    
     # Make sure the Python binary is up to date; we don't want our users to unknowingly run outdated software as this is
     # likely to cause unexpected issues.
     fCheckPythonVersion("rs", asTestedPythonVersions, "https://github.com/SkyLined/rs/issues/new")
@@ -153,75 +179,32 @@ try:
     asCommandTemplate = [];
     for (sArgument, s0LowerName, s0Value) in fatsArgumentLowerNameAndValue():
       if s0LowerName in ["r", "recursive"]:
-        if s0Value is None or s0Value.lower() == "true":
-          bRecursive = True;
-        elif s0Value.lower() == "false":
-          bRecursive = False;
-        else:
-          oConsole.fOutput(ERROR, "- The value for ", ERROR_INFO, sArgument, ERROR, \
-              " must be \"", ERROR_INFO, "true", ERROR, "\" (default) or \"", ERROR_INFO, "false", ERROR, "\".");
-          sys.exit(2);
+        bRecursive = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName in ["q", "quiet"]:
-        if s0Value is None or s0Value.lower() == "true":
-          bQuiet = True;
-        elif s0Value.lower() == "false":
-          bQuiet = False;
-        else:
-          oConsole.fOutput(ERROR, "- The value for ", ERROR_INFO, sArgument, ERROR, \
-              " must be \"", ERROR_INFO, "true", ERROR, "\" (default) or \"", ERROR_INFO, "false", ERROR, "\".");
-          sys.exit(2);
+        bQuiet = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName in ["v", "verbose"]:
-        if s0Value is None or s0Value.lower() == "true":
-          bVerbose = True;
-        elif s0Value.lower() == "false":
-          bVerbose = False;
-        else:
-          oConsole.fOutput(ERROR, "- The value for ", ERROR_INFO, sArgument, ERROR, \
-              " must be \"", ERROR_INFO, "true", ERROR, "\" (default) or \"", ERROR_INFO, "false", ERROR, "\".");
-          sys.exit(2);
+        bVerbose = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName in ["p", "pause"]:
-        if s0Value is None or s0Value.lower() == "true":
-          bPause = True;
-        elif s0Value.lower() == "false":
-          bPause = False;
-        else:
-          oConsole.fOutput(ERROR, "- The value for ", ERROR_INFO, sArgument, ERROR, \
-              " must be \"", ERROR_INFO, "true", ERROR, "\" (default) or \"", ERROR_INFO, "false", ERROR, "\".");
-          sys.exit(2);
+        bPause = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName in ["u", "unicode"]:
-        if s0Value is None or s0Value.lower() == "true":
-          bUnicode = True;
-        elif s0Value.lower() == "false":
-          bUnicode = False;
-        else:
-          oConsole.fOutput(ERROR, "- The value for ", ERROR_INFO, sArgument, ERROR, \
-              " must be \"", ERROR_INFO, "true", ERROR, "\" (default) or \"", ERROR_INFO, "false", ERROR, "\".");
-          sys.exit(2);
+        bUnicode = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName in ["e", "uedit"]:
-        if s0Value is None or s0Value.lower() == "true":
-          bUseUEditCommandTemplate = True;
-        elif s0Value.lower() == "false":
-          bUseUEditCommandTemplate = False;
-        else:
-          oConsole.fOutput(ERROR, "- The value for ", ERROR_INFO, sArgument, ERROR, \
-              " must be \"", ERROR_INFO, "true", ERROR, "\" (default) or \"", ERROR_INFO, "false", ERROR, "\".");
-          sys.exit(2);
+        bUseUEditCommandTemplate = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName in ["t", "tabs"]:
-        try:
-          uConvertTabsToSpaces = int(s0Value);
-          assert uConvertTabsToSpaces < 1, "";
-        except Exception as oException:
-          oConsole.fOutput(ERROR, "- The value for ", ERROR_INFO, sArgument, ERROR, \
-              " must be ", ERROR_INFO, "an integer larger than 0", ERROR, ".");
-          os._exit(2);
+        xValue = fxProcessBooleanArgument(s0LowerName, s0Value, u0CanAlsoBeAnIntegerLargerThan = 0);
+        uConvertTabsToSpaces = xValue if isinstance(xValue, int) else 8;
       elif s0LowerName in ["l", "lines"]:
         # valid formats : "C" "-B", "-B+A" "+A"
         o0BeforeAfterMatch = re.match(r"^(?:(\d+)|(?:\-(\d+))?(?:(?:,|,?\+)(\d+))?)$", s0Value) if s0Value else None;
         if o0BeforeAfterMatch is None:
-          oConsole.fOutput(ERROR, "- The value for ", ERROR_INFO, s0Value, ERROR, " must be a valid range.");
-          oConsole.fOutput("  Try ", INFO, "N", NORMAL, ", ", INFO, "-N", NORMAL, ", ", INFO, "-N+N", NORMAL, ", or ", INFO, "+N", NORMAL, ".");
+          oConsole.fOutput(
+            COLOR_ERROR, CHAR_ERROR,
+            COLOR_NORMAL,  " The value for ",
+            COLOR_ERROR, s0LowerName,
+            COLOR_NORMAL, " must be a valid range.");
+          oConsole.fOutput("  Try ", COLOR_INFO, "N", COLOR_NORMAL, ", ", COLOR_INFO, "-N", COLOR_NORMAL, ", ", COLOR_INFO, "-N+N", COLOR_NORMAL, ", or ", COLOR_INFO, "+N", COLOR_NORMAL, ".");
           oConsole.fOutput("  Where each N is an integer. '-' prefix indicates before, '+' prefix indices after the match.");
-          os._exit(2);
+          sys.exit(guExitCodeBadArgument);
         suBeforeAndAfer, suBefore, suAfter = o0BeforeAfterMatch.groups();
         if suBeforeAndAfer:
           uNumberOfRelevantLinesBeforeMatch = uNumberOfRelevantLinesAfterMatch = int(suBeforeAndAfer);
@@ -241,15 +224,16 @@ try:
             rRegExp = frRegExp(sxRegExp, sFlags);
           except Exception as oException:
             oConsole.fOutput(
-              ERROR, "- Invalid regular expressions ",
-              ERROR_INFO, sPrefixFlags,
-              ERROR, "/",
-              ERROR_INFO, sRegExp,
-              ERROR, "/",
-              ERROR_INFO, sFlags
+              COLOR_ERROR, CHAR_ERROR,
+              COLOR_NORMAL,  " Invalid regular expressions ",
+              COLOR_INFO, sPrefixFlags,
+              COLOR_NORMAL, "/",
+              COLOR_INFO, sRegExp,
+              COLOR_NORMAL, "/",
+              COLOR_INFO, sFlags
             );
-            oConsole.fOutput("  ", ERROR_INFO, oException.message, ERROR, ".");
-            os._exit(2);
+            oConsole.fOutput("  ", COLOR_INFO, oException.message, COLOR_NORMAL, ".");
+            sys.exit(guExitCodeBadArgument);
           else:
             if bPath:
               if bNegative:
@@ -271,16 +255,24 @@ try:
         elif os.path.isdir(sArgument):
           asFolderPaths.add(sArgument);
         else:
-          oConsole.fOutput(ERROR, "- Unknown argument: ", ERROR_INFO, sArgument, ERROR, ".");
-          os._exit(2);
+          oConsole.fOutput(
+            COLOR_ERROR, CHAR_ERROR,
+            COLOR_NORMAL,  " Unknown argument: ",
+            COLOR_INFO, sArgument,
+            COLOR_NORMAL, ".",
+          );
+          sys.exit(guExitCodeBadArgument);
       else:
         asCommandTemplate.append(sArgument);
     
     # Check arguments and set some defaults
     if bUseUEditCommandTemplate:
       if asCommandTemplate:
-        oConsole.fOutput(ERROR, "You cannot provide a commend tempalte when using the -e option.");
-        os._exit(2);
+        oConsole.fOutput(
+          COLOR_ERROR, CHAR_ERROR,
+          COLOR_NORMAL, "You cannot provide a commend template when using the -e option.",
+        );
+        sys.exit(guExitCodeBadArgument);
       if not arContentRegExps:
         asCommandTemplate = ["uedit64.exe", "{f}"];
       else:
@@ -290,56 +282,56 @@ try:
       and not arPathRegExps and not arNegativePathRegExps
       and not arNameRegExps and not arNegativeNameRegExps
     ):
-      oConsole.fOutput(ERROR, "- Missing regular expression");
-      os._exit(2);
+      oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, " Missing regular expression.");
+      sys.exit(guExitCodeBadArgument);
     if not do0LastPathMatch_by_sSelectedFilePath and not asFolderPaths:
       asFolderPaths.add(os.getcwd());
     if bRecursive:
       if not asFolderPaths:
-        oConsole.fOutput(ERROR, "No folders to scan recursively");
-        os._exit(2);
+        oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, "No folders to scan recursively!");
+        sys.exit(guExitCodeBadArgument);
     
     # Show argument values in verbose mode
     if bVerbose:
       if asFolderPaths:
-        oConsole.fOutput("+ Selected folders:");
+        oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Selected folders:");
         for sFolderPath in asFolderPaths:
-          oConsole.fOutput("  + ", sFolderPath);
+          oConsole.fOutput("  ", CHAR_LIST, " ", sFolderPath);
       if bRecursive:
-        oConsole.fOutput("+ Folders will be traversed recursively");
+        oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Folders will be traversed recursively");
       
       if do0LastPathMatch_by_sSelectedFilePath:
-        oConsole.fOutput("+ Selected files:");
+        oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Selected files:");
         for sFilePath in fasSortedAlphabetically(do0LastPathMatch_by_sSelectedFilePath.keys()):
-          oConsole.fOutput("  + ", sFilePath);
+          oConsole.fOutput("  ", CHAR_LIST, " ", sFilePath);
       if arPathRegExps or arNegativePathRegExps:
-        oConsole.fOutput("+ File path regular expressions:");
+        oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " File path regular expressions:");
       for rNegativePathRegExp in arNegativePathRegExps:
-        oConsole.fOutput("  - ", fsRegExpToString(rNegativePathRegExp));
+        oConsole.fOutput("  ", COLOR_SELECT_NO, CHAR_SELECT_NO, COLOR_NORMAL, " ", fsRegExpToString(rNegativePathRegExp));
       for rPathRegExp in arPathRegExps:
-        oConsole.fOutput("  + ", fsRegExpToString(rPathRegExp));
+        oConsole.fOutput("  ", COLOR_SELECT_YES, CHAR_SELECT_YES, COLOR_NORMAL, " ", fsRegExpToString(rPathRegExp));
       
       if arNameRegExps or arNegativeNameRegExps:
-        oConsole.fOutput("+ File/folder name regular expressions:");
+        oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " File/folder name regular expressions:");
       for rNegativePathRegExp in arNegativeNameRegExps:
-        oConsole.fOutput("  - ", fsRegExpToString(rNegativePathRegExp));
+        oConsole.fOutput("  ", COLOR_SELECT_NO, CHAR_SELECT_NO, COLOR_NORMAL, " ", fsRegExpToString(rNegativePathRegExp));
       for rPathRegExp in arNameRegExps:
-        oConsole.fOutput("  + ", fsRegExpToString(rPathRegExp));
+        oConsole.fOutput("  ", COLOR_SELECT_YES, CHAR_SELECT_YES, COLOR_NORMAL, " ", fsRegExpToString(rPathRegExp));
       
       if arContentRegExps or arNegativeContentRegExps:
-        oConsole.fOutput("+ File content regular expressions:");
+        oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " File content regular expressions:");
       for rNegativeContentRegExp in arNegativeContentRegExps:
-        oConsole.fOutput("  - ", fsRegExpToString(rNegativeContentRegExp));
+        oConsole.fOutput("  ", COLOR_SELECT_NO, CHAR_SELECT_NO, COLOR_NORMAL, " ", fsRegExpToString(rNegativeContentRegExp));
       for rContentRegExp in arContentRegExps:
-        oConsole.fOutput("  + ", fsRegExpToString(rContentRegExp));
+        oConsole.fOutput("  ", COLOR_SELECT_YES, CHAR_SELECT_YES, COLOR_NORMAL, " ", fsRegExpToString(rContentRegExp));
       if bUnicode:
-        oConsole.fOutput("+ All '\\0' characters will be removed from the file contents before scanning,");
+        oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " All '\\0' characters will be removed from the file contents before scanning,");
         oConsole.fOutput("  to convert UTF-16 Unicode encoded ASCII characters back to ASCII.");
       if asCommandTemplate:
-        oConsole.fOutput("+ Command to be executed for each matched file:");
+        oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Command to be executed for each matched file:");
         oConsole.fOutput("  ", " ".join(asCommandTemplate));
       if bPause:
-        oConsole.fOutput("+ After scanning is complete, wait for the user to press ENTER.");
+        oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " After scanning is complete, wait for the user to press ENTER.");
     
     if asFolderPaths:
       do0LastPathMatch_by_sSelectedFilePath.update(fdoMultithreadedFilePathMatcher(
@@ -353,31 +345,33 @@ try:
     if not do0LastPathMatch_by_sSelectedFilePath:
       if arPathRegExps or arNegativePathRegExps or arNameRegExps or arNegativeNameRegExps:
         oConsole.fOutput(
-          ERROR, "- No files found that matched any of the ",
+          COLOR_ERROR, CHAR_ERROR,
+          COLOR_NORMAL, "- No files found that matched any of the ",
           " and ".join([s for s in [
             "path" if (arPathRegExps or arNegativePathRegExps) else None,
             "name" if (arNameRegExps or arNegativeNameRegExps) else None,
           ] if s]),
           " regular expressions.");
       else:
-        oConsole.fOutput(ERROR, "No files found.");
-      uResult = 0;
+        oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, " No files found.");
+      uExitCode = guExitCodeSuccess;
     elif not arContentRegExps and not arNegativeContentRegExps:
       for sFilePath in fasSortedAlphabetically(do0LastPathMatch_by_sSelectedFilePath.keys()):
         oConsole.fOutput(FILE_NAME, sFilePath); # Strip "\\?\"
         if asCommandTemplate:
           o0PathMatch = do0LastPathMatch_by_sSelectedFilePath[sFilePath];
           fRunCommand(asCommandTemplate, sFilePath, o0PathMatch);
-      uResult = len(do0LastPathMatch_by_sSelectedFilePath) > 0 and 1 or 0;
+      uExitCode = uExitCodeSuccess if len(do0LastPathMatch_by_sSelectedFilePath) > 0 else guExitCodeNoMatchesFound;
     else:
       oContentMatchingResults = foMultithreadedFileContentMatcher(uMaxThreads, list(do0LastPathMatch_by_sSelectedFilePath.keys()), arContentRegExps, arNegativeContentRegExps, bUnicode, uNumberOfRelevantLinesBeforeMatch, uNumberOfRelevantLinesAfterMatch);
       if bVerbose:
         for sFilePath in oContentMatchingResults.asNotScannedFilePaths:
-          oConsole.fOutput(DIM, "- ", sFilePath);
+          oConsole.fOutput(COLOR_DIM, "- ", sFilePath);
       if not oContentMatchingResults.dMatched_auLineNumbers_by_sFilePath:
         if arPathRegExps or arNegativePathRegExps or arNameRegExps or arNegativeNameRegExps:
           oConsole.fOutput(
-            ERROR, "No match found in ",
+            COLOR_ERROR, CHAR_ERROR,
+            COLOR_NORMAL, " No match found in ",
             str(len(do0LastPathMatch_by_sSelectedFilePath)),
             " files that matched the ",
             " and ".join([s for s in [
@@ -386,10 +380,10 @@ try:
             ] if s]),
             " regular expressions.");
         else:
-          oConsole.fOutput(ERROR, "No match found in any files.");
-        uResult = 0;
+          oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, " No match found in any files.");
+        uExitCode = guExitCodeNoMatchesFound;
       else:
-        uResult = 1;
+        uExitCode = uExitCodeSuccess;
         bFirst = True;
         bOutputRelevantLines = uNumberOfRelevantLinesBeforeMatch is not None or uNumberOfRelevantLinesAfterMatch is not None;
         for sFilePath in fasSortedAlphabetically(oContentMatchingResults.dMatched_auLineNumbers_by_sFilePath.keys()):
@@ -433,9 +427,9 @@ try:
                 oConsole.fOutput(
                   FILE_BOX, " ",
                   bMatchedLine and LINENO_COLOMN_MATCH or LINENO_COLOMN, "%6d" % uRelevantLineNumber,
-                  bMatchedLine and LINENO_CONTENT_SEPARATOR_MATCH or LINENO_CONTENT_SEPARATOR, "\u2502",
+                  bMatchedLine and LINENO_CONTENT_SEPARATOR_MATCH or LINENO_CONTENT_SEPARATOR, "│",
                   bMatchedLine and CONTENT_MATCH or CONTENT, str(sbRelevantLine, 'latin1'),
-                  CONTENT_EOL, "\u2190\u2193",
+                  CONTENT_EOL, CHAR_EOL,
                   uConvertTabsToSpaces = uConvertTabsToSpaces,
                 );
                 uPreviousLineNumber = uRelevantLineNumber;
@@ -446,15 +440,21 @@ try:
           oConsole.fOutput();
       if bVerbose:
         if len(oContentMatchingResults.asNotScannedFilePaths) > 0:
-          oConsole.fOutput("Scanned %d/%d files, %s bytes." % (
-              len(do0LastPathMatch_by_sSelectedFilePath) - len(oContentMatchingResults.asNotScannedFilePaths), len(do0LastPathMatch_by_sSelectedFilePath), fsBytesToHumanReadableString(oContentMatchingResults.uScannedBytes)));
+          oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Scanned %d/%d files, %s bytes." % (
+            len(do0LastPathMatch_by_sSelectedFilePath) - len(oContentMatchingResults.asNotScannedFilePaths),
+            len(do0LastPathMatch_by_sSelectedFilePath),
+            fsBytesToHumanReadableString(oContentMatchingResults.uScannedBytes),
+          ));
         else:
-          oConsole.fOutput("Scanned %d files, %s bytes." % (len(do0LastPathMatch_by_sSelectedFilePath), fsBytesToHumanReadableString(oContentMatchingResults.uScannedBytes)));
+          oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Scanned %d files, %s bytes." % (
+            len(do0LastPathMatch_by_sSelectedFilePath),
+            fsBytesToHumanReadableString(oContentMatchingResults.uScannedBytes),
+          ));
     if bPause:
       input();
-    os._exit(uResult);
-
+    sys.exit(uExitCode);
+  
 except Exception as oException:
   if m0DebugOutput:
-    m0DebugOutput.fTerminateWithException(oException);
+    m0DebugOutput.fTerminateWithException(oException, guExitCodeInternalError);
   raise;
