@@ -1,21 +1,7 @@
 ﻿import math, multiprocessing, os, re, sys;
 
-"""
-          dS'                          dS'                                      
-         dS' .cid ,dSSc  ,dS"*sd      dS'   /R/egular expression /S/earch       
-        dS'    SS;' '*'  YS(   Y     dS'                                        
-       dS'     SS`        `*%s,     dS'                                         
-      dS'      SS        b   )Sb   dS'                                          
-     dS'     .dSSb.      P*ssSP'  dS'                                           
-    dS'                          dS'                                            
-""";
-# Running this script will return an exit code, which translates as such:
-# 0 = executed successfully, no matches found.
-# 1 = executed successfully, matches found.
-# 2 = bad arguments
-# 3 = internal error
-# 4 = not used
-
+sModulePath = os.path.dirname(__file__);
+sys.path = [sModulePath] + [sPath for sPath in sys.path if sPath.lower() != sModulePath.lower()];
 from fInitializeProduct import fInitializeProduct;
 fInitializeProduct();
 
@@ -361,7 +347,7 @@ try:
         if asCommandTemplate:
           o0PathMatch = do0LastPathMatch_by_sSelectedFilePath[sFilePath];
           fRunCommand(asCommandTemplate, sFilePath, o0PathMatch);
-      uExitCode = uExitCodeSuccess if len(do0LastPathMatch_by_sSelectedFilePath) > 0 else guExitCodeNoMatchesFound;
+      uExitCode = guExitCodeSuccess if len(do0LastPathMatch_by_sSelectedFilePath) > 0 else guExitCodeNoMatchesFound;
     else:
       oContentMatchingResults = foMultithreadedFileContentMatcher(uMaxThreads, list(do0LastPathMatch_by_sSelectedFilePath.keys()), arContentRegExps, arNegativeContentRegExps, bUnicode, uNumberOfRelevantLinesBeforeMatch, uNumberOfRelevantLinesAfterMatch);
       if bVerbose:
