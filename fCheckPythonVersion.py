@@ -4,6 +4,7 @@ from mConsole import oConsole;
 
 from faxListOutput import faxListOutput;
 from mColorsAndChars import *;
+from mExitCodes import *;
 
 def fCheckPythonVersion(sApplicationName, asTestedPythonVersions, sBugURL):
   sPythonVersion = platform.python_version();
@@ -35,7 +36,7 @@ def fCheckPythonVersion(sApplicationName, asTestedPythonVersions, sBugURL):
       faxListOutput(sorted(str(u) for u in auTestedMajorVersions), "or", COLOR_INFO, COLOR_NORMAL),
       COLOR_NORMAL, ".",
     );
-    sys.exit(3);
+    sys.exit(guExitCodeInternalError);
   if not bRunningInTestedVersion:
     oConsole.fLock();
     try:

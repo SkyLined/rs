@@ -17,7 +17,7 @@ def fExitWithBadArgumentValue(sArgumentName, sMessage):
   oConsole.fOutput(
     COLOR_INFO, "  ", sMessage,
   );
-  sys.exit(uExitCodeBadArgument);
+  sys.exit(guExitCodeBadArgument);
 
 def fatsArgumentLowerNameAndValue():
   atsArgumentNameAndValue = [];
@@ -37,18 +37,18 @@ def fatsArgumentLowerNameAndValue():
         sLowerName = sNameWithPrefix[1:].lower();
       if sLowerName in ["h", "?", "help"]:
         fOutputUsageInformation();
-        sys.exit(uExitCodeSuccess);
+        sys.exit(guExitCodeSuccess);
       if sLowerName in ["version", "version-check"]:
-        fOutputUsageInformation(
+        fOutputVersionInformation(
           bCheckForUpdates = sLowerName == "version-check",
           bShowInstallationFolders = sLowerName == "version",
         );
-        sys.exit(uExitCodeSuccess);
+        sys.exit(guExitCodeSuccess);
       if sLowerName in ["license", "license-update"]:
-        fOutputUsageInformation(
+        fOutputLicenseInformation(
           bUpdateIfNeeded = sLowerName == "license-update",
         );
-        sys.exit(uExitCodeSuccess);
+        sys.exit(guExitCodeSuccess);
       if sLowerName in ["license-server-url"]:
         bValueIsIsValidURL = False;
         if s0Value:
@@ -93,7 +93,7 @@ def fatsArgumentLowerNameAndValue():
               COLOR_NORMAL, " on ", COLOR_INFO, str(oLicense.uLicensedInstances),
               COLOR_NORMAL, " machine", "s" if oLicense.uLicensedInstances != 1 else "", ".",
             );
-        sys.exit(uExitCodeSuccess);
+        sys.exit(guExitCodeSuccess);
       elif sLowerName in ["license-load-file"]:
         sPath = s0Value or "#license.asc";
         oLicenseFile = cFileSystemItem(sPath);
@@ -130,7 +130,7 @@ def fatsArgumentLowerNameAndValue():
               COLOR_NORMAL, " on ", COLOR_INFO, str(oLicense.uLicensedInstances),
               COLOR_NORMAL, " machine", "s" if oLicense.uLicensedInstances != 1 else "", ".",
             );
-        sys.exit(uExitCodeSuccess);
+        sys.exit(guExitCodeSuccess);
       elif sLowerName == "arguments":
         if not s0Value:
           fExitWithBadArgumentValue(sLowerName, "You must provide a path to a file containing arguments as value for this argument.");
