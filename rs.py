@@ -369,7 +369,7 @@ try:
           oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, " No match found in any files.");
         uExitCode = guExitCodeNoMatchesFound;
       else:
-        uExitCode = uExitCodeSuccess;
+        uExitCode = guExitCodeSuccess;
         bFirst = True;
         bOutputRelevantLines = uNumberOfRelevantLinesBeforeMatch is not None or uNumberOfRelevantLinesAfterMatch is not None;
         for sFilePath in fasSortedAlphabetically(oContentMatchingResults.dMatched_auLineNumbers_by_sFilePath.keys()):
