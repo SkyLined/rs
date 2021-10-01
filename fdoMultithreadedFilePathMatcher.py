@@ -82,10 +82,10 @@ class cMultithreadedFilePathMatcher(object):
         oSelf.fDebug();
     
     aoThreads = [
-      cThread(target = oSelf.fScanThread)
+      cThread(oSelf.fScanThread)
       for x in range(uMaxThreads)
     ] + [
-      cThread(target = oSelf.fStatusThread)
+      cThread(oSelf.fStatusThread)
     ];
     
     for oThread in aoThreads:
