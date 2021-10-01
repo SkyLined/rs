@@ -332,7 +332,7 @@ try:
       if arPathRegExps or arNegativePathRegExps or arNameRegExps or arNegativeNameRegExps:
         oConsole.fOutput(
           COLOR_ERROR, CHAR_ERROR,
-          COLOR_NORMAL, "- No files found that matched any of the ",
+          COLOR_NORMAL, " No files found that matched any of the ",
           " and ".join([s for s in [
             "path" if (arPathRegExps or arNegativePathRegExps) else None,
             "name" if (arNameRegExps or arNegativeNameRegExps) else None,

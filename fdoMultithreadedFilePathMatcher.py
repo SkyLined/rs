@@ -27,11 +27,21 @@ def fdoMultithreadedFilePathMatcher(
   );
   return oMultithreadedFilePathMatcher.odosMatchedFilePaths.dxValue;  
 
-def fVerboseMatchOuput(sChar, sItemPath, sReason, oMatch):
+def fVerboseOutputHelper(b0Selected, sItemPath, sRegExpType, rRegExp, o0Match):
   oConsole.fLock();
   try:
-    oConsole.fOutput("  ", sChar, " ", sItemPath, COLOR_DIM, " (matches ", sReason, " reg.exp. ", oMatch.re.pattern, ")");
-    if len(oMatch.groups()):
+    oConsole.fOutput(
+      "  ", 
+      [COLOR_SELECT_MAYBE, CHAR_SELECT_MAYBE] if b0Selected is None else
+      [COLOR_SELECT_YES, CHAR_SELECT_YES] if b0Selected else
+      [COLOR_SELECT_NO, CHAR_SELECT_NO],
+      COLOR_NORMAL, " ", sItemPath,
+      COLOR_DIM, " (",
+      "matches" if o0Match else "does not match",
+      " ", sRegExpType, " reg.exp. ", str(rRegExp.pattern),
+      ")",
+    );
+    if o0Match and len(o0Match.groups()):
       asSubMatchesOutput = [];
       for sSubMatch in oMatch.groups():
         asSubMatchesOutput += [", " if len(asSubMatchesOutput) else "", COLOR_NORMAL, sSubMatch, COLOR_DIM];
@@ -145,52 +155,35 @@ class cMultithreadedFilePathMatcher(object):
         sItemName = os.path.basename(sItemPath);
       # Having negative reg.exps. means not add if matched:
       for rNegativePathRegExp in oSelf.arNegativePathRegExps:
-        oMatch = rNegativePathRegExp.search(sItemPath)
-        if oMatch:
+        o0Match = rNegativePathRegExp.search(sItemPath)
+        if o0Match:
           # Matching negative reg.exp. means don't add (and stop matching).
           if oSelf.bVerbose:
-            fVerboseMatchOuput("-", sItemPath, "negative path", oMatch);
+            fVerboseOutputHelper(False, sItemPath, "negative path", rNegativePathRegExp, o0Match);
           return;
       for rNegativeNameRegExp in oSelf.arNegativeNameRegExps:
-        oMatch = rNegativeNameRegExp.search(sItemName);
-        if oMatch:
+        o0Match = rNegativeNameRegExp.search(sItemName);
+        if o0Match:
           # Matching negative reg.exp. means don't add (and stop matching).
           if oSelf.bVerbose:
-            fVerboseMatchOuput("-", sItemPath, "negative name", oMatch);
+            fVerboseOutputHelper(False, sItemPath, "negative name", rNegativeNameRegExp, o0Match);
           return;
       # Not matching negative reg.exp. means maybe add:
       # Not having positive reg.exps. means add:
       # Having positive reg.exps. means add if matches all:
       if oSelf.arPathRegExps:
         for rPathRegExp in oSelf.arPathRegExps:
-          oMatch = rPathRegExp.search(sItemPath);
-          if oMatch:
-            if oSelf.bVerbose:
-              fVerboseMatchOuput("*", sItemPath, "path", oMatch);
-            oLastPathMatch = oMatch;
-          else:
-            if oSelf.bVerbose:
-              oConsole.fOutput(
-                "  ",
-                COLOR_SELECT_NO, CHAR_SELECT_NO,
-                COLOR_NORMAL, " ", sItemPath,
-                COLOR_DIM, " (does not match path reg.exp. ", rPathRegExp.pattern, ")",
-              );
+          o0Match = rPathRegExp.search(sItemPath);
+          if oSelf.bVerbose:
+            fVerboseOutputHelper(None if o0Match else False, sItemPath, "path", rPathRegExp, o0Match);
+          if not o0Match:
             return;
       if oSelf.arNameRegExps:
         for rNameRegExp in oSelf.arNameRegExps:
-          oMatch = rNameRegExp.search(sItemName);
-          if oMatch:
-            if oSelf.bVerbose:
-              fVerboseMatchOuput("*", sItemPath, "name", oMatch);
-          else:
-            if oSelf.bVerbose:
-              oConsole.fOutput(
-                "  ",
-                COLOR_SELECT_NO, CHAR_SELECT_NO,
-                COLOR_NORMAL, " ", sItemPath,
-                COLOR_DIM, " (does not match name reg.exp. ", rNameRegExp.pattern, ")",
-              );
+          o0Match = rNameRegExp.search(sItemName);
+          if oSelf.bVerbose:
+            fVerboseOutputHelper(None if o0Match else False, sItemPath, "name", rNameRegExp, o0Match);
+          if not o0Match:
             return;
       if oSelf.bVerbose:
         sMatchedExpressionTypes = " and ".join([s for s in [
@@ -199,14 +192,14 @@ class cMultithreadedFilePathMatcher(object):
         ] if s]);
         oConsole.fOutput(
           "  ",
-          COLOR_SELECTED, CHAR_SELECT_YES,
+          COLOR_SELECT_YES, CHAR_SELECT_YES,
           COLOR_NORMAL, " ", sItemPath,
           COLOR_DIM, " (matches all ", sMatchedExpressionTypes, " reg.exp.)",
         );
     elif oSelf.bVerbose:
       oConsole.fOutput(
         "  ",
-        COLOR_SELECTED, CHAR_SELECT_YES,
+        COLOR_SELECT_YES, CHAR_SELECT_YES,
         COLOR_NORMAL, " ", sItemPath,
       );
     oSelf.odosMatchedFilePaths.fSet(sItemPath, oLastPathMatch);
@@ -224,7 +217,7 @@ class cMultithreadedFilePathMatcher(object):
         if oMatch:
           # Matching negative path reg.exp. means don't add and files in this folder (and stop matching).
           if oSelf.bVerbose:
-            fVerboseMatchOuput("-", sItemPath + "\\*", "negative path", oMatch);
+            fVerboseOutputHelper(False, sItemPath + "\\*", "negative path", rNegativePathRegExp, oMatch);
           return;
       # Not matching negative path reg.exp. means maybe add:
       # Having positive reg.exps. means add if matches all:
@@ -233,12 +226,7 @@ class cMultithreadedFilePathMatcher(object):
           oMatch = rPathRegExp.search(sItemPath);
           if not oMatch:
             if oSelf.bVerbose:
-              oConsole.fOutput(
-                "  ",
-                COLOR_SELECT_NO, CHAR_SELECT_NO,
-                COLOR_NORMAL, " ", sItemPath,
-                COLOR_DIM, "\\* (does not match path reg.exp. ", rPathRegExp.pattern, ")",
-              );
+              fVerboseOutputHelper(False, sItemPath + "\\*", "path", rPathRegExp, None);
             return;
     if oSelf.bVerbose:
       oConsole.fOutput(
