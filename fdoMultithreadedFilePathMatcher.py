@@ -1,5 +1,7 @@
-import os, queue, threading, time;
+import os, queue, time;
+
 from mConsole import oConsole;
+from mMultiThreading import cThread;
 
 from cCounter import cCounter;
 from cDict import cDict;
@@ -80,17 +82,16 @@ class cMultithreadedFilePathMatcher(object):
         oSelf.fDebug();
     
     aoThreads = [
-      threading.Thread(target = oSelf.fScanThread)
+      cThread(target = oSelf.fScanThread)
       for x in range(uMaxThreads)
     ] + [
-      threading.Thread(target = oSelf.fStatusThread)
+      cThread(target = oSelf.fStatusThread)
     ];
     
     for oThread in aoThreads:
-      oThread.daemon = True;
-      oThread.start();
+      oThread.fStart(bVital = False);
     for oThread in aoThreads:
-      oThread.join();
+      oThread.fWait();
   
   def fDebug(oSelf):
 #    oConsole.fOutput("%d/%d/%d/%d" % (oSelf.oNumberOfFilesFound.uValue, oSelf.oNumberOfFoldersFound.uValue, oSelf.oNumberOfItemsFound.uValue, oSelf.oNumberOfItemsCompleted.uValue));

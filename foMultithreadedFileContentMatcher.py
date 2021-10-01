@@ -1,4 +1,6 @@
-import queue, threading, time;
+import queue, time;
+
+from mMultiThreading import cThread;
 from mConsole import oConsole;
 
 from cCounter import cCounter;
@@ -35,15 +37,15 @@ class cMultithreadedFileContentMatcher(object):
     oSelf.fDebug("initialized");
     
     aoThreads = [
-      threading.Thread(target = oSelf.fScanThread)
+      cThread(oSelf.fScanThread)
       for x in range(uMaxThreads)
     ] + [
-      threading.Thread(target = oSelf.fStatusThread)
+      cThread(oSelf.fStatusThread)
     ];
     for oThread in aoThreads:
-      oThread.start();
+      oThread.fStart(bVital = False);
     for oThread in aoThreads:
-      oThread.join();
+      oThread.fWait();
     oSelf.fDebug("Finished scanning");
     oSelf.asNotScannedFilePaths = oSelf.oasNotScannedFilePaths.axValue;
   
