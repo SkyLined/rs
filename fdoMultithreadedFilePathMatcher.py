@@ -198,14 +198,14 @@ class cMultithreadedFilePathMatcher(object):
         ] if s]);
         oConsole.fOutput(
           "  ",
-          COLOR_SELECED, CHAR_SELECT_YES,
+          COLOR_SELECTED, CHAR_SELECT_YES,
           COLOR_NORMAL, " ", sItemPath,
           COLOR_DIM, " (matches all ", sMatchedExpressionTypes, " reg.exp.)",
         );
     elif oSelf.bVerbose:
       oConsole.fOutput(
         "  ",
-        COLOR_SELECED, CHAR_SELECT_YES,
+        COLOR_SELECTED, CHAR_SELECT_YES,
         COLOR_NORMAL, " ", sItemPath,
       );
     oSelf.odosMatchedFilePaths.fSet(sItemPath, oLastPathMatch);
