@@ -64,7 +64,7 @@ try:
     );
     sys.exit(guExitCodeBadArgument);
   if __name__ == "__main__":
-    asTestedPythonVersions = ["3.9.1"];
+    asTestedPythonVersions = ["3.9.1", "3.9.7"];
     
     sComSpec = os.environ["COMSPEC"];
     uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
