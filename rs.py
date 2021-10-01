@@ -1,4 +1,12 @@
-﻿import math, multiprocessing, os, re, sys;
+﻿"""       dS'                          dS'                                      
+         dS' .cid ,dSSc  ,dS"*sd      dS'   /R/egular expression /S/earch       
+        dS'    SS;' '*'  YS(   Y     dS'                                        
+       dS'     SS`        `*%s,     dS'                                         
+      dS'      SS        b   )Sb   dS'                                          
+     dS'     .dSSb.      P*ssSP'  dS'                                           
+    dS'                          dS'                                        """;
+
+import math, multiprocessing, os, re, sys;
 
 sModulePath = os.path.dirname(__file__);
 sys.path = [sModulePath] + [sPath for sPath in sys.path if sPath.lower() != sModulePath.lower()];
