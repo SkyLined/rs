@@ -51,4 +51,3 @@ uuid
 warnings
 weakref
 zipfile
-zlib
