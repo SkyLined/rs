@@ -23,18 +23,24 @@ ECHO   * Test search with command execution and redirected output...
 REM Looking for this -> @@@MARKER@@@
 REM Here's another on a different line: @@@MARKER@@@
 CALL "%~dp0\..\rs.cmd" "n/\ATests\.cmd\Z/" "c/@@@(M)(A)(R)(K)(E)(R)@@@/" --verbose -- ECHO SUCCESS \\{f}=[\{f}] f=[{f}] l=[{l},{l},{l}] 0=[{0}] 1=[{1}] 2=[{2}] 3=[{3}] 4=[{4}] 5=[{5}] 6=[{6}] 7=[{7}] 8=[{8}] 9=[{9}] 10=[{10}] d=[{d}] p=[{p}] n=[{n}] x=[{x}] dpnx=[{dpnx}]
-IF ERRORLEVEL 2 (
-  POPD & GOTO :ERROR
-)
-IF NOT ERRORLEVEL 1 (
+IF %ERRORLEVEL% == 10 (
   POPD
-  ECHO     - Expected a match, but got none ^(exit code = 0^).
+  ECHO =^> Expected a match ^(exit code = 0^) but got no matches ^(exit code 10^).
   ENDLOCAL
   EXIT /B 1
 )
+IF ERRORLEVEL 1 (
+  ECHO =^> Expected a match ^(exit code = 0^) but got exit code %ERRORLEVEL%!?
+  POPD
+  CALL :CLEANUP
+  ENDLOCAL
+  EXIT /B 3
+)
 
-ECHO + Test.cmd completed.
+POPD
+CALL :CLEANUP
 ENDLOCAL
+ECHO + Test.cmd completed.
 EXIT /B 0
 
 :ERROR
