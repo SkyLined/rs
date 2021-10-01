@@ -34,3 +34,6 @@
 [submodule "modules/mConsole"]
 	path = modules/mConsole
 	url = https://github.com/SkyLined/mConsole
+[submodule "modules/mMultiThreading"]
+	path = modules/mMultiThreading
+	url = https://github.com/SkyLined/mMultiThreading
