@@ -29,7 +29,7 @@ def fCheckPythonVersion(sApplicationName, asTestedPythonVersions, sBugURL):
         # This application was tested in a later version, so the version we are running in is outdated.
         bRunningInOlderVersion = True;
   if not bRunningInTestedMajorVersion:
-    asTestedMayorVersions = sorted(str(u) for u in auTestedMajorVersions]);
+    asTestedMayorVersions = [str(u) for u in sorted(auTestedMajorVersions)];
     oConsole.fOutput(
       COLOR_ERROR, CHAR_ERROR,
       COLOR_NORMAL, " ", sApplicationName, " requires Python version ",
