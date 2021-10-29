@@ -51,6 +51,6 @@ EXIT /B 0
 
 :CLEANUP
   IF EXIST "%REDIRECT_STDOUT_FILE_PATH%" (
-    TYPE "%REDIRECT_STDOUT_FILE_PATH%"
+    POWERSHELL $OutputEncoding = New-Object -Typename System.Text.UTF8Encoding; Get-Content -Encoding utf8 '"%REDIRECT_STDOUT_FILE_PATH%"'
     DEL "%REDIRECT_STDOUT_FILE_PATH%" /Q
   )
