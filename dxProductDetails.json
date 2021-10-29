@@ -3,16 +3,16 @@
     "mDebugOutput"
   ],
   "a0sDependentOnProductNames": [
+    "mConsole",
+    "mDateTime",
     "mFileSystemItem",
     "mHumanReadable",
-    "mDateTime",
-    "mProductDetails",
     "mMultiThreading",
-    "mWindowsAPI",
-    "mWindowsSDK",
+    "mNotProvided",
+    "mProductDetails",
     "mRegistry",
-    "mConsole",
-    "mNotProvided"
+    "mWindowsAPI",
+    "mWindowsSDK"
   ],
   "a0sPythonApplicationNames": [
     "rs"
@@ -27,7 +27,7 @@
     "sbRepositoryName": "rs",
     "sbUserName": "SkyLined"
   },
-  "oProductVersion": "2021-09-21 12:26",
+  "oProductVersion": "2021-10-29 09:59",
   "sProductAuthor": "SkyLined",
   "sProductName": "rs",
   "sStructureVersion": "2021-07-02 11:16",
