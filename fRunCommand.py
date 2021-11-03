@@ -39,9 +39,9 @@ def fRunCommand(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch, 
     if sEscape:
       return "{" + sDoNotQuote + sChars + "}"; # do not replace.
     if sChars == "l":
-      if fsSubstitudePathTemplates.uCurrentLineNumberIndex < len(auLineNumbers):
-        fsSubstitudePathTemplates.uCurrentLineNumberIndex += 1;
-        return "%d" % auLineNumbers[fsSubstitudePathTemplates.uCurrentLineNumberIndex - 1];
+      if fsSubstitudeTemplate.uCurrentLineNumberIndex < len(auLineNumbers):
+        fsSubstitudeTemplate.uCurrentLineNumberIndex += 1;
+        return "%d" % auLineNumbers[fsSubstitudeTemplate.uCurrentLineNumberIndex - 1];
       return "-1";
     if sChars[0] in "0123456789":
       o0LastNameOrPathMatch = (
