@@ -27,10 +27,11 @@ try:
   from mHumanReadable import fsBytesToHumanReadableString;
   
   from fasSortedAlphabetically import fasSortedAlphabetically;
-  from fCheckPythonVersion import fCheckPythonVersion;
-  from fdoMultithreadedFilePathMatcher import fdoMultithreadedFilePathMatcher;
-  from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
   from fatsArgumentLowerNameAndValue import fatsArgumentLowerNameAndValue;
+  from fCheckPythonVersion import fCheckPythonVersion;
+  from fdtoMultithreadedFileNameAndPathMatcher import fdtoMultithreadedFileNameAndPathMatcher;
+  from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
+  from fRunCommand import fRunCommand;
   from mColorsAndChars import *;
   from mExitCodes import *;
   
@@ -74,7 +75,6 @@ try:
   if __name__ == "__main__":
     asTestedPythonVersions = ["3.9.1", "3.9.7"];
     
-    sComSpec = os.environ["COMSPEC"];
     uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
     grRegExpArgument = re.compile(
       r"\A"
@@ -86,74 +86,11 @@ try:
       r"\Z"
     );
     
-    def fRunCommand(asCommandTemplate, sFilePath, o0LastPathMatch, auLineNumbers = []):
-      asCommandTemplate = [s for s in asCommandTemplate];
-      sDrivePath, sNameExtension = sFilePath.rsplit("\\", 1);
-      if ":" in sDrivePath:
-        sDrive, sPath = sDrivePath.split(":", 1);
-        if sDrive.startswith("\\\\?\\"):
-          sDrive = sDrive[4:];
-        sDrive += ":";
-      else:
-        sDrive, sPath = "", sDrivePath;
-      if "." in sNameExtension:
-        sName, sExtension = sNameExtension.rsplit(".", 1);
-        sExtension = "." + sExtension;
-      else:
-        sName, sExtension = sNameExtension, "";
-      def fsSubstitudePathTemplates(oMatch):
-        sEscape, sDoNotQuote, sChars = oMatch.groups();
-        if sEscape:
-          return "{" + sDoNotQuote + sChars + "}"; # do not replace.
-        if sChars == "l":
-          if fsSubstitudePathTemplates.uCurrentLineNumberIndex < len(auLineNumbers):
-            fsSubstitudePathTemplates.uCurrentLineNumberIndex += 1;
-            return "%d" % auLineNumbers[fsSubstitudePathTemplates.uCurrentLineNumberIndex - 1];
-          return "-1";
-        if sChars[0] in "0123456789":
-          uIndex = int(sChars);
-          try:
-            sSubstitute = o0LastPathMatch.group(uIndex) if o0LastPathMatch else "";
-          except IndexError:
-            sSubstitute = "";
-        else:
-          sSubstitute = "";
-          dsReplacements = {
-            "f": sFilePath,
-            "d": sDrive or "",
-            "p": sPath or "",
-            "n": sName or "",
-            "x": sExtension or "",
-          };
-          sLastChar = "";
-          for sChar in sChars:
-            if sChar == "n" and sLastChar == "p":
-              sSubstitute += "\\"
-            sSubstitute += dsReplacements[sChar];
-            sLastChar = sChar;
-        if sDoNotQuote == "":
-          sSubstitute = '"%s"' % sSubstitute.replace('"', '"""');
-        return sSubstitute;
-      fsSubstitudePathTemplates.uCurrentLineNumberIndex = 0;
-      
-      asCommandLine = [
-        # match everything "{" replacement "}", and note if "{" is escaped as "\\{"
-        re.sub(r"(\\)?\{(~?)(l|[0-9]+|[fdpnx]+)\}", fsSubstitudePathTemplates, sTemplate)
-        for sTemplate in asCommandTemplate
-      ];
-      oProcess = mWindowsAPI.cConsoleProcess.foCreateForBinaryPathAndArguments(
-        sBinaryPath = sComSpec,
-        asArguments = ["/C"] + asCommandLine,
-        bRedirectStdOut = False,
-        bRedirectStdErr = False,
-      );
-      oProcess.fbWait();
-    
     # Make sure the Python binary is up to date; we don't want our users to unknowingly run outdated software as this is
     # likely to cause unexpected issues.
     fCheckPythonVersion("rs", asTestedPythonVersions, "https://github.com/SkyLined/rs/issues/new")
     
-    do0LastPathMatch_by_sSelectedFilePath = {};
+    dto0LastNameAndPathMatches_by_sSelectedFilePath = {};
     asFolderPaths = set();
     arContentRegExps = [];
     arNegativeContentRegExps = [];
@@ -245,7 +182,8 @@ try:
               else:
                 arContentRegExps.append(rRegExp);
         elif os.path.isfile(sArgument):
-          do0LastPathMatch_by_sSelectedFilePath[sArgument] = None; # User supplied; no regular expression match
+          # The file name was provided on the command line: there are no name and path matches.
+          dto0LastNameAndPathMatches_by_sSelectedFilePath[sArgument] = None;
         elif os.path.isdir(sArgument):
           asFolderPaths.add(sArgument);
         else:
@@ -278,7 +216,7 @@ try:
     ):
       oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, " Missing regular expression.");
       sys.exit(guExitCodeBadArgument);
-    if not do0LastPathMatch_by_sSelectedFilePath and not asFolderPaths:
+    if not dto0LastNameAndPathMatches_by_sSelectedFilePath and not asFolderPaths:
       asFolderPaths.add(os.getcwd());
     if bRecursive:
       if not asFolderPaths:
@@ -294,9 +232,9 @@ try:
       if bRecursive:
         oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Folders will be traversed recursively");
       
-      if do0LastPathMatch_by_sSelectedFilePath:
+      if dto0LastNameAndPathMatches_by_sSelectedFilePath:
         oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Selected files:");
-        for sFilePath in fasSortedAlphabetically(do0LastPathMatch_by_sSelectedFilePath.keys()):
+        for sFilePath in fasSortedAlphabetically(dto0LastNameAndPathMatches_by_sSelectedFilePath.keys()):
           oConsole.fOutput("  ", CHAR_LIST, " ", sFilePath);
       if arPathRegExps or arNegativePathRegExps:
         oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " File path regular expressions:");
@@ -328,7 +266,7 @@ try:
         oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " After scanning is complete, wait for the user to press ENTER.");
     
     if asFolderPaths:
-      do0LastPathMatch_by_sSelectedFilePath.update(fdoMultithreadedFilePathMatcher(
+      dto0LastNameAndPathMatches_by_sSelectedFilePath.update(fdtoMultithreadedFileNameAndPathMatcher(
         uMaxThreads,
         asFolderPaths,
         bRecursive,
@@ -336,7 +274,7 @@ try:
         arNameRegExps, arNegativeNameRegExps,
         bVerbose
       ));
-    if not do0LastPathMatch_by_sSelectedFilePath:
+    if not dto0LastNameAndPathMatches_by_sSelectedFilePath:
       if arPathRegExps or arNegativePathRegExps or arNameRegExps or arNegativeNameRegExps:
         oConsole.fOutput(
           COLOR_ERROR, CHAR_ERROR,
@@ -350,14 +288,22 @@ try:
         oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, " No files found.");
       uExitCode = guExitCodeSuccess;
     elif not arContentRegExps and not arNegativeContentRegExps:
-      for sFilePath in fasSortedAlphabetically(do0LastPathMatch_by_sSelectedFilePath.keys()):
+      for sFilePath in fasSortedAlphabetically(dto0LastNameAndPathMatches_by_sSelectedFilePath.keys()):
         oConsole.fOutput(FILE_NAME, sFilePath); # Strip "\\?\"
         if asCommandTemplate:
-          o0PathMatch = do0LastPathMatch_by_sSelectedFilePath[sFilePath];
-          fRunCommand(asCommandTemplate, sFilePath, o0PathMatch);
-      uExitCode = guExitCodeSuccess if len(do0LastPathMatch_by_sSelectedFilePath) > 0 else guExitCodeNoMatchesFound;
+          (o0LastNameMatch, o0LastPathMatch) = dto0LastNameAndPathMatches_by_sSelectedFilePath[sFilePath];
+          fRunCommand(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch);
+      uExitCode = guExitCodeSuccess if len(dto0LastNameAndPathMatches_by_sSelectedFilePath) > 0 else guExitCodeNoMatchesFound;
     else:
-      oContentMatchingResults = foMultithreadedFileContentMatcher(uMaxThreads, list(do0LastPathMatch_by_sSelectedFilePath.keys()), arContentRegExps, arNegativeContentRegExps, bUnicode, uNumberOfRelevantLinesBeforeMatch, uNumberOfRelevantLinesAfterMatch);
+      oContentMatchingResults = foMultithreadedFileContentMatcher(
+        uMaxThreads,
+        list(dto0LastNameAndPathMatches_by_sSelectedFilePath.keys()),
+        arContentRegExps,
+        arNegativeContentRegExps,
+        bUnicode,
+        uNumberOfRelevantLinesBeforeMatch,
+        uNumberOfRelevantLinesAfterMatch
+      );
       if bVerbose:
         for sFilePath in oContentMatchingResults.asNotScannedFilePaths:
           oConsole.fOutput(COLOR_DIM, "- ", sFilePath);
@@ -366,7 +312,7 @@ try:
           oConsole.fOutput(
             COLOR_ERROR, CHAR_ERROR,
             COLOR_NORMAL, " No match found in ",
-            str(len(do0LastPathMatch_by_sSelectedFilePath)),
+            str(len(dto0LastNameAndPathMatches_by_sSelectedFilePath)),
             " files that matched the ",
             " and ".join([s for s in [
               "path" if (arPathRegExps or arNegativePathRegExps) else None,
@@ -428,20 +374,20 @@ try:
                 );
                 uPreviousLineNumber = uRelevantLineNumber;
           if asCommandTemplate:
-            oPathMatch = do0LastPathMatch_by_sSelectedFilePath[sFilePath];
-            fRunCommand(asCommandTemplate, sFilePath, oPathMatch, auMatchedLineNumbers);
+            (o0LastNameMatch, o0LastPathMatch) = dto0LastNameAndPathMatches_by_sSelectedFilePath[sFilePath];
+            fRunCommand(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch, auMatchedLineNumbers);
         if not bFirst:
           oConsole.fOutput();
       if bVerbose:
         if len(oContentMatchingResults.asNotScannedFilePaths) > 0:
           oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Scanned %d/%d files, %s bytes." % (
-            len(do0LastPathMatch_by_sSelectedFilePath) - len(oContentMatchingResults.asNotScannedFilePaths),
-            len(do0LastPathMatch_by_sSelectedFilePath),
+            len(dto0LastNameAndPathMatches_by_sSelectedFilePath) - len(oContentMatchingResults.asNotScannedFilePaths),
+            len(dto0LastNameAndPathMatches_by_sSelectedFilePath),
             fsBytesToHumanReadableString(oContentMatchingResults.uScannedBytes),
           ));
         else:
           oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Scanned %d files, %s bytes." % (
-            len(do0LastPathMatch_by_sSelectedFilePath),
+            len(dto0LastNameAndPathMatches_by_sSelectedFilePath),
             fsBytesToHumanReadableString(oContentMatchingResults.uScannedBytes),
           ));
     if bPause:

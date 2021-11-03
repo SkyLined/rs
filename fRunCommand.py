@@ -1,0 +1,93 @@
+import os, re;
+
+from mWindowsAPI import cConsoleProcess;
+
+sComSpec = os.environ["COMSPEC"];
+
+rSubstitudeTemplate = re.compile(
+  r"(\\)?"
+  r"\{"
+    r"(~?)"
+    r"("
+      r"l"
+    r"|"
+      r"(n|p)?[0-9]+"
+    r"|"
+      r"[fdpnx]+"
+    r")"
+  r"\}"
+);
+
+def fRunCommand(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch, auLineNumbers = []):
+  asCommandTemplate = [s for s in asCommandTemplate];
+  sDrivePath, sNameExtension = sFilePath.rsplit("\\", 1);
+  if ":" in sDrivePath:
+    sDrive, sPath = sDrivePath.split(":", 1);
+    if sDrive.startswith("\\\\?\\"):
+      sDrive = sDrive[4:];
+    sDrive += ":";
+  else:
+    sDrive, sPath = "", sDrivePath;
+  if "." in sNameExtension:
+    sName, sExtension = sNameExtension.rsplit(".", 1);
+    sExtension = "." + sExtension;
+  else:
+    sName, sExtension = sNameExtension, "";
+  
+  def fsSubstitudeTemplate(oMatch):
+    sEscape, sDoNotQuote, sChars, s0IndexAppliesToNameOrPath = oMatch.groups();
+    if sEscape:
+      return "{" + sDoNotQuote + sChars + "}"; # do not replace.
+    if sChars == "l":
+      if fsSubstitudePathTemplates.uCurrentLineNumberIndex < len(auLineNumbers):
+        fsSubstitudePathTemplates.uCurrentLineNumberIndex += 1;
+        return "%d" % auLineNumbers[fsSubstitudePathTemplates.uCurrentLineNumberIndex - 1];
+      return "-1";
+    if sChars[0] in "0123456789":
+      o0LastNameOrPathMatch = (
+        o0LastNameMatch if s0IndexAppliesToNameOrPath == "n" else
+        o0LastPathMatch if s0IndexAppliesToNameOrPath == "p" else
+        (o0LastNameMatch or o0LastPathMatch)
+      );
+      assert o0LastNameOrPathMatch, \
+        "There is no %s match from which to extract group %s" % (
+          {"n": "name", "p": "path"}.get(s0IndexAppliesToNameOrPath, "name or path"),
+          sChars
+        )
+      try:
+        sSubstitute = o0LastNameOrPathMatch.group(int(sChars));
+      except IndexError:
+        sSubstitute = "";
+    else:
+      sSubstitute = "";
+      dsReplacements = {
+        "f": sFilePath,
+        "d": sDrive or "",
+        "p": sPath or "",
+        "n": sName or "",
+        "x": sExtension or "",
+      };
+      sLastChar = "";
+      for sChar in sChars:
+        if sChar == "n" and sLastChar == "p":
+          sSubstitute += "\\"
+        sSubstitute += dsReplacements[sChar];
+        sLastChar = sChar;
+    if sDoNotQuote == "":
+      sSubstitute = '"%s"' % sSubstitute.replace('"', '"""');
+    return sSubstitute;
+  fsSubstitudeTemplate.uCurrentLineNumberIndex = 0;
+  
+  asCommandLine = [
+    # match everything "{" replacement "}", and note if "{" is escaped as "\\{"
+    rSubstitudeTemplate.sub(fsSubstitudeTemplate, sTemplate)
+    for sTemplate in asCommandTemplate
+  ];
+  oProcess = cConsoleProcess.foCreateForBinaryPathAndArguments(
+    sBinaryPath = sComSpec,
+    asArguments = ["/C"] + asCommandLine,
+    bRedirectStdOut = False,
+    bRedirectStdErr = False,
+  );
+  oProcess.fbWait();
+

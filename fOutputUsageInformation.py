@@ -91,8 +91,12 @@ def fOutputUsageInformation():
     oConsole.fOutput("    found, or -1 if there are no more matches: {l},{l},{l} will be replaced with");
     oConsole.fOutput("    the line numbers of the first three matches, separated by commas.");
     oConsole.fOutput("      ", COLOR_INFO, "{1}", COLOR_NORMAL, ", ", COLOR_INFO, "{2}", COLOR_NORMAL, ", ", COLOR_INFO, "{3}", COLOR_NORMAL, "... - the ", CONSOLE_UNDERLINE, "first path", COLOR_NORMAL, " match's sub-matches.");
-    oConsole.fOutput("    Note: You can use {1} - {9} to insert parts of the first match against the");
-    oConsole.fOutput("    file path. This may be useful to mass-rename files.");
+    oConsole.fOutput("    Note: You can use numbers to insert groups from the last match against the");
+    oConsole.fOutput("    file name or path. This may be useful to mass-rename files. If both a name");
+    oConsole.fOutput("    and a path match exists, the name match is used. You can use the prefixes");
+    oConsole.fOutput("    \"n\" and \"p\" to force using the name or path match, as in {n1} or {p2}.");
+    oConsole.fOutput("    For instance ", COLOR_INFO, "rs \"n/(.*)\\.old$/\" -- ren {f} {1}", COLOR_NORMAL, " will remove the \".old\" extension");
+    oConsole.fOutput("    from all files in the current folder.");
     oConsole.fOutput();
     oConsole.fOutput(COLOR_HILITE, "Examples:");
     oConsole.fOutput("  ", COLOR_INFO, "rs /C+/ -p /P+/ -r");

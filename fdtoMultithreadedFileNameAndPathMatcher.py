@@ -9,7 +9,7 @@ from mColorsAndChars import *;
 
 giBarLength = 80;
 
-def fdoMultithreadedFilePathMatcher(
+def fdtoMultithreadedFileNameAndPathMatcher(
   uMaxThreads,
   asFolderPaths,
   bRecursive,
@@ -17,7 +17,7 @@ def fdoMultithreadedFilePathMatcher(
   arNameRegExps, arNegativeNameRegExps,
   bVerbose,
 ):
-  oMultithreadedFilePathMatcher = cMultithreadedFilePathMatcher(
+  oMatcher = cMultithreadedFileNameAndPathMatcher(
     uMaxThreads,
     asFolderPaths,
     bRecursive,
@@ -25,7 +25,7 @@ def fdoMultithreadedFilePathMatcher(
     arNameRegExps, arNegativeNameRegExps,
     bVerbose,
   );
-  return oMultithreadedFilePathMatcher.odosMatchedFilePaths.dxValue;  
+  return oMatcher.oMatchesByFilePath.dxValue;  
 
 def fVerboseOutputHelper(b0Selected, sItemPath, sRegExpType, rRegExp, o0Match):
   oConsole.fLock();
@@ -49,7 +49,7 @@ def fVerboseOutputHelper(b0Selected, sItemPath, sRegExpType, rRegExp, o0Match):
   finally:
     oConsole.fUnlock();
 
-class cMultithreadedFilePathMatcher(object):
+class cMultithreadedFileNameAndPathMatcher(object):
   def __init__(oSelf,
     uMaxThreads,
     asFolderPaths,
@@ -66,7 +66,7 @@ class cMultithreadedFilePathMatcher(object):
     oSelf.arNegativeNameRegExps = arNegativeNameRegExps;
     oSelf.bVerbose = bVerbose;
     
-    oSelf.odosMatchedFilePaths = cDict();
+    oSelf.oMatchesByFilePath = cDict();
     oSelf.oException = None;
     oSelf.oNumberOfFilesFound = cCounter();
     oSelf.oNumberOfFoldersFound = cCounter();
@@ -144,46 +144,51 @@ class cMultithreadedFilePathMatcher(object):
 #      oConsole.fOutput("scan thread %d/%d done" % (oSelf.oScanThreadsFinished.uValue, oSelf.oScanThreadsStarted.uValue));
       oSelf.oUnhandledItemPathsQueue.put(None);
   
-  def fHandleFile(oSelf, sItemPath):
-    oLastPathMatch = None;
+  def fHandleFile(oSelf, sFilePath):
+    o0LastNameMatch = None;
+    o0LastPathMatch = None;
     # Having no reg.exps. means always add:
     if (
       oSelf.arPathRegExps or oSelf.arNegativePathRegExps
       or oSelf.arNameRegExps or oSelf.arNegativeNameRegExps
     ):
       if oSelf.arNameRegExps or oSelf.arNegativeNameRegExps:
-        sItemName = os.path.basename(sItemPath);
+        sItemName = os.path.basename(sFilePath);
       # Having negative reg.exps. means not add if matched:
       for rNegativePathRegExp in oSelf.arNegativePathRegExps:
-        o0Match = rNegativePathRegExp.search(sItemPath)
+        o0Match = rNegativePathRegExp.search(sFilePath)
         if o0Match:
           # Matching negative reg.exp. means don't add (and stop matching).
           if oSelf.bVerbose:
-            fVerboseOutputHelper(False, sItemPath, "negative path", rNegativePathRegExp, o0Match);
+            fVerboseOutputHelper(False, sFilePath, "negative path", rNegativePathRegExp, o0Match);
           return;
       for rNegativeNameRegExp in oSelf.arNegativeNameRegExps:
         o0Match = rNegativeNameRegExp.search(sItemName);
         if o0Match:
           # Matching negative reg.exp. means don't add (and stop matching).
           if oSelf.bVerbose:
-            fVerboseOutputHelper(False, sItemPath, "negative name", rNegativeNameRegExp, o0Match);
+            fVerboseOutputHelper(False, sFilePath, "negative name", rNegativeNameRegExp, o0Match);
           return;
       # Not matching negative reg.exp. means maybe add:
       # Not having positive reg.exps. means add:
       # Having positive reg.exps. means add if matches all:
       if oSelf.arPathRegExps:
         for rPathRegExp in oSelf.arPathRegExps:
-          o0Match = rPathRegExp.search(sItemPath);
+          o0Match = rPathRegExp.search(sFilePath);
           if oSelf.bVerbose:
-            fVerboseOutputHelper(None if o0Match else False, sItemPath, "path", rPathRegExp, o0Match);
-          if not o0Match:
+            fVerboseOutputHelper(None if o0Match else False, sFilePath, "path", rPathRegExp, o0Match);
+          if o0Match:
+            o0LastPathMatch = o0Match;
+          else:
             return;
       if oSelf.arNameRegExps:
         for rNameRegExp in oSelf.arNameRegExps:
           o0Match = rNameRegExp.search(sItemName);
           if oSelf.bVerbose:
-            fVerboseOutputHelper(None if o0Match else False, sItemPath, "name", rNameRegExp, o0Match);
-          if not o0Match:
+            fVerboseOutputHelper(None if o0Match else False, sFilePath, "name", rNameRegExp, o0Match);
+          if o0Match:
+            o0LastNameMatch = o0Match;
+          else:
             return;
       if oSelf.bVerbose:
         sMatchedExpressionTypes = " and ".join([s for s in [
@@ -193,19 +198,18 @@ class cMultithreadedFilePathMatcher(object):
         oConsole.fOutput(
           "  ",
           COLOR_SELECT_YES, CHAR_SELECT_YES,
-          COLOR_NORMAL, " ", sItemPath,
+          COLOR_NORMAL, " ", sFilePath,
           COLOR_DIM, " (matches all ", sMatchedExpressionTypes, " reg.exp.)",
         );
     elif oSelf.bVerbose:
       oConsole.fOutput(
         "  ",
         COLOR_SELECT_YES, CHAR_SELECT_YES,
-        COLOR_NORMAL, " ", sItemPath,
+        COLOR_NORMAL, " ", sFilePath,
       );
-    oSelf.odosMatchedFilePaths.fSet(sItemPath, oLastPathMatch);
+    oSelf.oMatchesByFilePath.fSet(sFilePath, (o0LastNameMatch, o0LastPathMatch));
   
-  def fHandleFolder(oSelf, sItemPath, asSubItemNames):
-    oLastPathMatch = None;
+  def fHandleFolder(oSelf, sFolderPath, asSubItemNames):
     # Having no reg.exps. means always add:
     if (
       oSelf.arPathRegExps or oSelf.arNegativePathRegExps
@@ -213,20 +217,20 @@ class cMultithreadedFilePathMatcher(object):
     ):
       # Having negative path reg.exps. means not add if matched:
       for rNegativePathRegExp in oSelf.arNegativePathRegExps:
-        oMatch = rNegativePathRegExp.search(sItemPath);
+        oMatch = rNegativePathRegExp.search(sFolderPath);
         if oMatch:
           # Matching negative path reg.exp. means don't add and files in this folder (and stop matching).
           if oSelf.bVerbose:
-            fVerboseOutputHelper(False, sItemPath + "\\*", "negative path", rNegativePathRegExp, oMatch);
+            fVerboseOutputHelper(False, sFolderPath + "\\*", "negative path", rNegativePathRegExp, oMatch);
           return;
       # Not matching negative path reg.exp. means maybe add:
       # Having positive reg.exps. means add if matches all:
       if oSelf.arPathRegExps:
         for rPathRegExp in oSelf.arPathRegExps:
-          oMatch = rPathRegExp.search(sItemPath);
+          oMatch = rPathRegExp.search(sFolderPath);
           if not oMatch:
             if oSelf.bVerbose:
-              fVerboseOutputHelper(False, sItemPath + "\\*", "path", rPathRegExp, None);
+              fVerboseOutputHelper(False, sFolderPath + "\\*", "path", rPathRegExp, None);
             return;
     if oSelf.bVerbose:
       oConsole.fOutput(
@@ -235,12 +239,12 @@ class cMultithreadedFilePathMatcher(object):
         COLOR_NORMAL, " Scanning ",
         COLOR_INFO, str(len(asSubItemNames)),
         COLOR_NORMAL, " descendants of folder ",
-        COLOR_INFO, sItemPath,
+        COLOR_INFO, sFolderPath,
         COLOR_DIM, " (matches all path reg.exp.)",
       );
     oSelf.oNumberOfItemsFound.fuAdd(len(asSubItemNames));
     for sSubItemName in asSubItemNames:
-      sSubItemPath = os.path.join(sItemPath, sSubItemName);
+      sSubItemPath = os.path.join(sFolderPath, sSubItemName);
       # Doing a recursive find means getting sub-items of sub-folders as well, so queue it:
       if oSelf.bRecursive:
         oSelf.oUnhandledItemPathsQueue.put(sSubItemPath);
@@ -270,7 +274,7 @@ class cMultithreadedFilePathMatcher(object):
         uNumberOfItemsCompleted = oSelf.oNumberOfItemsCompleted.uValue;
         uNumberOfItemsRemaining = uNumberOfItemsFound - uNumberOfFoldersFound - uNumberOfFilesFound;
         nProgress = 1.0 * uNumberOfItemsCompleted / uNumberOfItemsFound if uNumberOfItemsFound else 0;
-        nSubProgress = 1.0 * oSelf.odosMatchedFilePaths.uSize / uNumberOfFilesFound if uNumberOfFilesFound else 0;
+        nSubProgress = 1.0 * oSelf.oMatchesByFilePath.uSize / uNumberOfFilesFound if uNumberOfFilesFound else 0;
         oConsole.fProgressBar(
           nProgress,
           sMessage = "%s%d files (%d/%d items remaining)" % (
@@ -279,7 +283,7 @@ class cMultithreadedFilePathMatcher(object):
                 "path" if bMatchingPath else None,
                 "name" if bMatchingName else None,
               ] if s]),
-              oSelf.odosMatchedFilePaths.uSize,
+              oSelf.oMatchesByFilePath.uSize,
             ) if bMatchingPathOrName else "Found ",
             uNumberOfFilesFound,
             uNumberOfItemsRemaining,
