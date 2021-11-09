@@ -1,6 +1,6 @@
-[submodule "modules/oConsole"]
-	path = modules/oConsole
-	url = https://github.com/SkyLined/oConsole/
+[submodule "modules/mConsole"]
+	path = modules/mConsole
+	url = https://github.com/SkyLined/mConsole/
 [submodule "modules/mProductDetails"]
 	path = modules/mProductDetails
 	url = https://github.com/SkyLined/mProductDetails/
@@ -16,12 +16,6 @@
 [submodule "modules/mWindowsAPI"]
 	path = modules/mWindowsAPI
 	url = https://github.com/SkyLined/mWindowsAPI/
-[submodule "modules/fsBytesToHumanReadableString"]
-	path = modules/fsBytesToHumanReadableString
-	url = https://github.com/SkyLined/fsBytesToHumanReadableString/
-[submodule "modules/cFileSystemItem"]
-	path = modules/cFileSystemItem
-	url = https://github.com/SkyLined/cFileSystemItem/
 [submodule "modules/mHumanReadable"]
 	path = modules/mHumanReadable
 	url = https://github.com/SkyLined/mHumanReadable/
