@@ -13,6 +13,7 @@ errno
 fnmatch
 gc
 hashlib
+heapq
 http
 importlib
 inspect
@@ -24,6 +25,7 @@ msvcrt
 multiprocessing
 nturl2path
 opcode
+pathlib
 pickle
 platform
 posixpath
@@ -44,7 +46,6 @@ threading
 token
 tokenize
 traceback
-typing
 urllib
 uu
 uuid
