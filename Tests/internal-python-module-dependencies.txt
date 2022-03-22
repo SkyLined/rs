@@ -25,7 +25,6 @@ msvcrt
 multiprocessing
 nturl2path
 opcode
-pathlib
 pickle
 platform
 posixpath
@@ -51,4 +50,3 @@ uu
 uuid
 warnings
 weakref
-zipfile
