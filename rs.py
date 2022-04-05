@@ -153,7 +153,7 @@ try:
           sxRegExp = sRegExp if (bPath or bFileOrFolderName) else bytes(sRegExp, 'latin1');
           try:
             rRegExp = frRegExp(sxRegExp, sFlags);
-          except Exception as oException:
+          except re.error as oException:
             oConsole.fOutput(
               COLOR_ERROR, CHAR_ERROR,
               COLOR_NORMAL,  " Invalid regular expressions ",
@@ -163,7 +163,17 @@ try:
               COLOR_NORMAL, "/",
               COLOR_INFO, sFlags
             );
-            oConsole.fOutput("  ", COLOR_INFO, oException.message, COLOR_NORMAL, ".");
+            oConsole.fOutput(
+              " " * (len(
+                CHAR_ERROR
+                + " Invalid regular expressions "
+                + sPrefixFlags
+                + "/"
+              ) + oException.pos),
+              COLOR_ERROR, "▲",
+              COLOR_NORMAL, " ",
+              COLOR_INFO, oException.msg
+            );
             sys.exit(guExitCodeBadArgument);
           else:
             if bPath:
