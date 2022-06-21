@@ -6,7 +6,7 @@
      dS'     .dSSb.      P*ssSP'  dS'                                           
     dS'                          dS'                                        """;
 
-import math, multiprocessing, os, re, sys;
+import multiprocessing, os, re, sys;
 
 sModulePath = os.path.dirname(__file__);
 sys.path = [sModulePath] + [sPath for sPath in sys.path if sPath.lower() != sModulePath.lower()];
@@ -23,7 +23,6 @@ except ModuleNotFoundError as oException:
 guExitCodeInternalError = 1; # Just in case mExitCodes is not loaded, as we need this later.
 try:
   from mConsole import oConsole;
-  import mWindowsAPI;
   from mHumanReadable import fsBytesToHumanReadableString;
   
   from fasSortedAlphabetically import fasSortedAlphabetically;
@@ -216,9 +215,9 @@ try:
         );
         sys.exit(guExitCodeBadArgument);
       if not arContentRegExps:
-        asCommandTemplate = ["uedit64.exe", "{f}"];
+        asCommandTemplate = ["Code.exe", "{f}"];
       else:
-        asCommandTemplate = ["uedit64.exe", '"{~f}/{l}"']; # line number must be inside quotes
+        asCommandTemplate = ["Code.exe", '"{~f}:{l}"']; # line number must be inside quotes
     if (
       not arContentRegExps and not arNegativeContentRegExps
       and not arPathRegExps and not arNegativePathRegExps
@@ -342,7 +341,14 @@ try:
             if not bOutputRelevantLines:
               oConsole.fOutput(
                 FILE_NAME, sFilePath,
-                FILE_LINENO, "/", ",".join([str(u) for u in auMatchedLineNumbers]),
+                COLOR_NORMAL, ":",
+                FILE_LINENO, str(auMatchedLineNumbers[0]),
+                [
+                  [
+                    COLOR_NORMAL, ",",
+                    FILE_LINENO, str(uLineNumber)
+                  ] for uLineNumber in auMatchedLineNumbers
+                ],
               );
             else:
               if bFirst:
@@ -367,7 +373,8 @@ try:
                     FILE_CUT_LINENO_COLOMN, "\xB7" * 6,
                     LINENO_CONTENT_SEPARATOR, ":",
                     FILE_CUT_NAME, " ", sFilePath,
-                    FILE_CUT_LINENO, "/%d" % auMatchedLineNumbers[uNextMatchedLineIndex],
+                    COLOR_NORMAL, ":",
+                    FILE_CUT_LINENO, str(auMatchedLineNumbers[uNextMatchedLineIndex]),
                     FILE_CUT_PAD, " ", sPadding = "\xB7",
                  );
                 sbRelevantLine = oContentMatchingResults.dRelevant_asbLines_by_uLineNumber_by_sFilePath[sFilePath][uRelevantLineNumber];
