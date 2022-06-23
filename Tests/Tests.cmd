@@ -22,7 +22,7 @@ PUSHD "%~dp0"
 ECHO   * Test search with command execution and redirected output... 
 REM Looking for this -> @@@MARKER@@@
 REM Here's another on a different line: @@@MARKER@@@
-CALL "%~dp0\..\rs.cmd" "n/\ATests\.cmd\Z/" "c/@@@(M)(A)(R)(K)(E)(R)@@@/" --verbose -- ECHO SUCCESS \\{f}=[\{f}] f=[{f}] l=[{l},{l},{l}] 0=[{0}] 1=[{1}] 2=[{2}] 3=[{3}] 4=[{4}] 5=[{5}] 6=[{6}] 7=[{7}] 8=[{8}] 9=[{9}] 10=[{10}] d=[{d}] p=[{p}] n=[{n}] x=[{x}] dpnx=[{dpnx}]
+CALL "%~dp0\..\rs.cmd" "n/\ATests\.cmd\Z/" "c/@@@(M)(A)(R)(K)(E)(R)@@@/" --verbose -- "%ComSpec%" /C ECHO SUCCESS \\{f}=[\{f}] f=[{f}] l=[{l},{l},{l}] 0=[{0}] 1=[{1}] 2=[{2}] 3=[{3}] 4=[{4}] 5=[{5}] 6=[{6}] 7=[{7}] 8=[{8}] 9=[{9}] 10=[{10}] d=[{d}] p=[{p}] n=[{n}] x=[{x}] dpnx=[{dpnx}]
 IF %ERRORLEVEL% == 10 (
   POPD
   ECHO =^> Expected a match ^(exit code = 0^) but got no matches ^(exit code 10^).

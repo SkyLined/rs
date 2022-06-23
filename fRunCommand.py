@@ -84,8 +84,8 @@ def fRunCommand(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch, 
     for sTemplate in asCommandTemplate
   ];
   oProcess = cConsoleProcess.foCreateForBinaryPathAndArguments(
-    sBinaryPath = sComSpec,
-    asArguments = ["/C"] + asCommandLine,
+    sBinaryPath = asCommandLine[0],
+    asArguments = asCommandLine[1:],
     bRedirectStdOut = False,
     bRedirectStdErr = False,
   );

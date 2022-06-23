@@ -34,6 +34,8 @@ try:
   from mColorsAndChars import *;
   from mExitCodes import *;
   
+  gsEditoryBinaryPath = os.path.join(os.getenv("LocalAppData"), "Programs", "Microsoft VS Code", "Code.exe");
+
   def frRegExp(sRegExp, sFlags):
     return re.compile(sRegExp, sum([
       {"i": re.I, "l":re.L, "m":re.M, "s": re.S, "u": re.U, "x": re.X}[sFlag]
@@ -215,9 +217,9 @@ try:
         );
         sys.exit(guExitCodeBadArgument);
       if not arContentRegExps:
-        asCommandTemplate = ["Code.exe", "{f}"];
+        asCommandTemplate = [gsEditoryBinaryPath, "--goto", "{f}"];
       else:
-        asCommandTemplate = ["Code.exe", '"{~f}:{l}"']; # line number must be inside quotes
+        asCommandTemplate = [gsEditoryBinaryPath, "--goto", "{~f}:{l}"]; # line number must be inside quotes
     if (
       not arContentRegExps and not arNegativeContentRegExps
       and not arPathRegExps and not arNegativePathRegExps
