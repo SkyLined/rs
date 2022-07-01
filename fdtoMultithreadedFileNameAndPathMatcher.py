@@ -277,23 +277,20 @@ class cMultithreadedFileNameAndPathMatcher(object):
         nSubProgress = 1.0 * oSelf.oMatchesByFilePath.uSize / uNumberOfFilesFound if uNumberOfFilesFound else 0;
         oConsole.fProgressBar(
           nProgress,
-          sMessage = "%s%d files (%d/%d items remaining)" % (
-            "Matched %s for %d/" % (
-              " and ".join([s for s in [
-                "path" if bMatchingPath else None,
-                "name" if bMatchingName else None,
-              ] if s]),
-              oSelf.oMatchesByFilePath.uSize,
-            ) if bMatchingPathOrName else "Found ",
-            uNumberOfFilesFound,
-            uNumberOfItemsRemaining,
-            uNumberOfItemsFound,
-          ),
+          [
+            "Matched ",
+            " and ".join([s for s in [
+              "path" if bMatchingPath else None,
+              "name" if bMatchingName else None,
+            ] if s]),
+            " for ", str(oSelf.oMatchesByFilePath.uSize), "/", str(uNumberOfFilesFound), " files",
+          ] if bMatchingPathOrName else [
+            "Found ", str(uNumberOfFilesFound), " files",
+          ],
+          " (", str(uNumberOfItemsRemaining), "/", str(uNumberOfItemsFound), " items remaining)",
           nSubProgress = nSubProgress,
         );
         time.sleep(0.25);
     except Exception as oException:
       oSelf.oException = oException;
       raise;
-#    finally:
-#      oConsole.fOutput("status thread done");
