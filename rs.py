@@ -349,7 +349,7 @@ try:
                   [
                     COLOR_NORMAL, ",",
                     FILE_LINENO, str(uLineNumber)
-                  ] for uLineNumber in auMatchedLineNumbers
+                  ] for uLineNumber in auMatchedLineNumbers[1:]
                 ],
               );
             else:
@@ -362,7 +362,7 @@ try:
               oConsole.fOutput(
                 FILE_BOX, " ",
                 FILE_BOX_NAME, sFilePath,
-                FILE_BOX_LINENO, "/%d" % auMatchedLineNumbers[uNextMatchedLineIndex],
+                FILE_BOX_LINENO, ":%d" % auMatchedLineNumbers[uNextMatchedLineIndex],
                 FILE_BOX, sPadding = " ",
               );
               auRelevantLineNumbers = sorted(oContentMatchingResults.dRelevant_asbLines_by_uLineNumber_by_sFilePath[sFilePath].keys());
