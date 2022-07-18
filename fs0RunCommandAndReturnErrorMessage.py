@@ -18,7 +18,7 @@ rSubstitudeTemplate = re.compile(
   r"\}"
 );
 
-def fRunCommand(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch, auLineNumbers = []):
+def fs0RunCommandAndReturnErrorMessage(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch, auLineNumbers = []):
   asCommandTemplate = [s for s in asCommandTemplate];
   sDrivePath, sNameExtension = sFilePath.rsplit("\\", 1);
   if ":" in sDrivePath:
@@ -83,11 +83,14 @@ def fRunCommand(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch, 
     rSubstitudeTemplate.sub(fsSubstitudeTemplate, sTemplate)
     for sTemplate in asCommandTemplate
   ];
-  oProcess = cConsoleProcess.foCreateForBinaryPathAndArguments(
-    sBinaryPath = asCommandLine[0],
-    asArguments = asCommandLine[1:],
-    bRedirectStdOut = False,
-    bRedirectStdErr = False,
-  );
-  oProcess.fbWait();
-
+  try:
+    oProcess = cConsoleProcess.foCreateForBinaryPathAndArguments(
+      sBinaryPath = asCommandLine[0],
+      asArguments = asCommandLine[1:],
+      bRedirectStdOut = False,
+      bRedirectStdErr = False,
+    );
+  except FileNotFoundError:
+    return "Cannot find binary named '%s'" % asCommandLine[0];
+  oProcess.fWait();
+  return None;

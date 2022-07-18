@@ -30,7 +30,7 @@ try:
   from fCheckPythonVersion import fCheckPythonVersion;
   from fdtoMultithreadedFileNameAndPathMatcher import fdtoMultithreadedFileNameAndPathMatcher;
   from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
-  from fRunCommand import fRunCommand;
+  from fs0RunCommandAndReturnErrorMessage import fs0RunCommandAndReturnErrorMessage;
   from mColorsAndChars import *;
   from mExitCodes import *;
   
@@ -213,7 +213,7 @@ try:
       if asCommandTemplate:
         oConsole.fOutput(
           COLOR_ERROR, CHAR_ERROR,
-          COLOR_NORMAL, "You cannot provide a commend template when using the -e option.",
+          COLOR_NORMAL, " You cannot provide a commend template when using the -e option.",
         );
         sys.exit(guExitCodeBadArgument);
       if not arContentRegExps:
@@ -225,13 +225,19 @@ try:
       and not arPathRegExps and not arNegativePathRegExps
       and not arNameRegExps and not arNegativeNameRegExps
     ):
-      oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, " Missing regular expression.");
+      oConsole.fOutput(
+        COLOR_ERROR, CHAR_ERROR,
+        COLOR_NORMAL, " Missing regular expression.",
+      );
       sys.exit(guExitCodeBadArgument);
     if not dto0LastNameAndPathMatches_by_sSelectedFilePath and not asFolderPaths:
       asFolderPaths.add(os.getcwd());
     if bRecursive:
       if not asFolderPaths:
-        oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, "No folders to scan recursively!");
+        oConsole.fOutput(
+          COLOR_ERROR, CHAR_ERROR,
+          COLOR_NORMAL, "No folders to scan recursively!",
+        );
         sys.exit(guExitCodeBadArgument);
     
     # Show argument values in verbose mode
@@ -296,14 +302,23 @@ try:
           ] if s]),
           " regular expressions.");
       else:
-        oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, " No files found.");
+        oConsole.fOutput(
+          COLOR_ERROR, CHAR_ERROR,
+          COLOR_NORMAL, " No files found.",
+        );
       uExitCode = guExitCodeSuccess;
     elif not arContentRegExps and not arNegativeContentRegExps:
       for sFilePath in fasSortedAlphabetically(dto0LastNameAndPathMatches_by_sSelectedFilePath.keys()):
         oConsole.fOutput(FILE_NAME, sFilePath); # Strip "\\?\"
         if asCommandTemplate:
           (o0LastNameMatch, o0LastPathMatch) = dto0LastNameAndPathMatches_by_sSelectedFilePath[sFilePath];
-          fRunCommand(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch);
+          s0ErrorMessage = fs0RunCommandAndReturnErrorMessage(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch);
+          if s0ErrorMessage:
+            oConsole.fOutput(
+              COLOR_ERROR, CHAR_ERROR,
+              COLOR_NORMAL, " ", s0ErrorMessage,
+            );
+            sys.exit(guExitCodeCannotExecuteCommand);
       uExitCode = guExitCodeSuccess if len(dto0LastNameAndPathMatches_by_sSelectedFilePath) > 0 else guExitCodeNoMatchesFound;
     else:
       oContentMatchingResults = foMultithreadedFileContentMatcher(
@@ -331,7 +346,10 @@ try:
             ] if s]),
             " regular expressions.");
         else:
-          oConsole.fOutput(COLOR_ERROR, CHAR_ERROR, COLOR_NORMAL, " No match found in any files.");
+          oConsole.fOutput(
+            COLOR_ERROR, CHAR_ERROR,
+            COLOR_NORMAL, " No match found in any files.",
+          );
         uExitCode = guExitCodeNoMatchesFound;
       else:
         uExitCode = guExitCodeSuccess;
@@ -394,7 +412,13 @@ try:
                 uPreviousLineNumber = uRelevantLineNumber;
           if asCommandTemplate:
             (o0LastNameMatch, o0LastPathMatch) = dto0LastNameAndPathMatches_by_sSelectedFilePath[sFilePath];
-            fRunCommand(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch, auMatchedLineNumbers);
+            s0ErrorMessage = fs0RunCommandAndReturnErrorMessage(asCommandTemplate, sFilePath, o0LastNameMatch, o0LastPathMatch, auMatchedLineNumbers);
+            if s0ErrorMessage:
+              oConsole.fOutput(
+                COLOR_ERROR, CHAR_ERROR,
+                COLOR_NORMAL, " ", s0ErrorMessage,
+              );
+              sys.exit(guExitCodeCannotExecuteCommand);
         if not bFirst:
           oConsole.fOutput();
       if bVerbose:
