@@ -74,7 +74,7 @@ try:
     );
     sys.exit(guExitCodeBadArgument);
   if __name__ == "__main__":
-    asTestedPythonVersions = ["3.8.5", "3.9.1", "3.9.7", "3.10.0"];
+    asTestedPythonVersions = ["3.8.5", "3.9.1", "3.9.7", "3.10.0", "3.11.1"];
     
     uMaxThreads = max(1, multiprocessing.cpu_count() - 1);
     grRegExpArgument = re.compile(
