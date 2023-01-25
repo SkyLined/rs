@@ -1,11 +1,12 @@
 import queue, time;
 
 from mMultiThreading import cThread;
-from mConsole import oConsole;
 
 from cCounter import cCounter;
 from cList import cList;
+from foConsoleLoader import foConsoleLoader;
 from mColorsAndChars import *;
+oConsole = foConsoleLoader();
 
 bDebug = False;
 

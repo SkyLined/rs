@@ -1,11 +1,12 @@
 import os, queue, time;
 
-from mConsole import oConsole;
 from mMultiThreading import cThread;
 
 from cCounter import cCounter;
 from cDict import cDict;
+from foConsoleLoader import foConsoleLoader;
 from mColorsAndChars import *;
+oConsole = foConsoleLoader();
 
 giBarLength = 80;
 

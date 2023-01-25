@@ -22,7 +22,6 @@ except ModuleNotFoundError as oException:
 
 guExitCodeInternalError = 1; # Just in case mExitCodes is not loaded, as we need this later.
 try:
-  from mConsole import oConsole;
   from mHumanReadable import fsBytesToHumanReadableString;
   
   from fasSortedAlphabetically import fasSortedAlphabetically;
@@ -31,8 +30,10 @@ try:
   from fdtoMultithreadedFileNameAndPathMatcher import fdtoMultithreadedFileNameAndPathMatcher;
   from foMultithreadedFileContentMatcher import foMultithreadedFileContentMatcher;
   from fs0RunCommandAndReturnErrorMessage import fs0RunCommandAndReturnErrorMessage;
+  from foConsoleLoader import foConsoleLoader;
   from mColorsAndChars import *;
   from mExitCodes import *;
+  oConsole = foConsoleLoader();
   
   gsEditoryBinaryPath = os.path.join(os.getenv("LocalAppData"), "Programs", "Microsoft VS Code", "Code.exe");
 

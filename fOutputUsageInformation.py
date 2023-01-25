@@ -1,7 +1,8 @@
-from mConsole import oConsole;
 
+from foConsoleLoader import foConsoleLoader;
 from fOutputLogo import fOutputLogo;
 from mColorsAndChars import *;
+oConsole = foConsoleLoader();
 
 def fOutputUsageInformation():
   oConsole.fLock();
