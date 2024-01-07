@@ -116,7 +116,7 @@ def fOutputUsageInformation():
     oConsole.fOutput("    Match the content of these files against a C++ class definitions. Output");
     oConsole.fOutput("    the path, name and line numbers of the files and open each one in Notepad.");
     oConsole.fOutput();
-    oConsole.fOutput("  ", COLOR_INFO, "rs /struct\s+some_struct\s*{/m -r -p /\\.[ch](pp|xx)?$/i -l -1+16");
+    oConsole.fOutput("  ", COLOR_INFO, "rs /struct\\s+some_struct\\s*{/m -r -p /\\.[ch](pp|xx)?$/i -l -1+16");
     oConsole.fOutput("    Match all files in the current folder that have a C/C++ extension.");
     oConsole.fOutput("    Match the content of these files against the struct some_struct");
     oConsole.fOutput("    definitions. Output the path and name of the matched file(s) and the line");
