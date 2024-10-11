@@ -44,7 +44,7 @@ def fVerboseOutputHelper(b0Selected, sItemPath, sRegExpType, rRegExp, o0Match):
     );
     if o0Match and len(o0Match.groups()):
       asSubMatchesOutput = [];
-      for sSubMatch in oMatch.groups():
+      for sSubMatch in o0Match.groups():
         asSubMatchesOutput += [", " if len(asSubMatchesOutput) else "", COLOR_NORMAL, sSubMatch, COLOR_DIM];
       oConsole.fOutput(COLOR_DIM, "    Sub-matches: ", asSubMatchesOutput, ".");
   finally:
