@@ -128,22 +128,26 @@ try:
         uConvertTabsToSpaces = xValue if isinstance(xValue, int) else 8;
       elif s0LowerName in ["l", "lines"]:
         # valid formats : "C" "-B", "-B+A" "+A"
-        o0BeforeAfterMatch = re.match(r"^(?:(\d+)|(?:\-(\d+))?(?:(?:,|,?\+)(\d+))?)$", s0Value) if s0Value else None;
-        if o0BeforeAfterMatch is None:
-          oConsole.fOutput(
-            COLOR_ERROR, CHAR_ERROR,
-            COLOR_NORMAL,  " The value for ",
-            COLOR_ERROR, s0LowerName,
-            COLOR_NORMAL, " must be a valid range.");
-          oConsole.fOutput("  Try ", COLOR_INFO, "N", COLOR_NORMAL, ", ", COLOR_INFO, "-N", COLOR_NORMAL, ", ", COLOR_INFO, "-N+N", COLOR_NORMAL, ", or ", COLOR_INFO, "+N", COLOR_NORMAL, ".");
-          oConsole.fOutput("  Where each N is an integer. '-' prefix indicates before, '+' prefix indices after the match.");
-          sys.exit(guExitCodeBadArgument);
-        suBeforeAndAfer, suBefore, suAfter = o0BeforeAfterMatch.groups();
-        if suBeforeAndAfer:
-          uNumberOfRelevantLinesBeforeMatch = uNumberOfRelevantLinesAfterMatch = int(suBeforeAndAfer);
+        if s0Value is None:
+          uNumberOfRelevantLinesBeforeMatch = 1;
+          uNumberOfRelevantLinesAfterMatch = 1;
         else:
-          uNumberOfRelevantLinesBeforeMatch = int(suBefore or 0);
-          uNumberOfRelevantLinesAfterMatch = int(suAfter or 0);
+          o0BeforeAfterMatch = re.match(r"^(?:(\d+)|(?:\-(\d+))?(?:(?:,|,?\+)(\d+))?)$", s0Value);
+          if o0BeforeAfterMatch is None:
+            oConsole.fOutput(
+              COLOR_ERROR, CHAR_ERROR,
+              COLOR_NORMAL,  " The value for ",
+              COLOR_ERROR, s0LowerName,
+              COLOR_NORMAL, " must be a valid range.");
+            oConsole.fOutput("  Try ", COLOR_INFO, "N", COLOR_NORMAL, ", ", COLOR_INFO, "-N", COLOR_NORMAL, ", ", COLOR_INFO, "-N+N", COLOR_NORMAL, ", or ", COLOR_INFO, "+N", COLOR_NORMAL, ".");
+            oConsole.fOutput("  Where each N is an integer. '-' prefix indicates before, '+' prefix indices after the match.");
+            sys.exit(guExitCodeBadArgument);
+          suBeforeAndAfer, suBefore, suAfter = o0BeforeAfterMatch.groups();
+          if suBeforeAndAfer:
+            uNumberOfRelevantLinesBeforeMatch = uNumberOfRelevantLinesAfterMatch = int(suBeforeAndAfer);
+          else:
+            uNumberOfRelevantLinesBeforeMatch = int(suBefore or 0);
+            uNumberOfRelevantLinesAfterMatch = int(suAfter or 0);
       elif s0LowerName or s0Value: # arguments before "--"
         oRegExpMatch = grRegExpArgument.match(sArgument);
         if oRegExpMatch:
