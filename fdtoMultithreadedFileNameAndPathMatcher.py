@@ -274,8 +274,11 @@ class cMultithreadedFileNameAndPathMatcher(object):
         uNumberOfFoldersFound = oSelf.oNumberOfFoldersFound.uValue;
         uNumberOfItemsCompleted = oSelf.oNumberOfItemsCompleted.uValue;
         uNumberOfItemsRemaining = uNumberOfItemsFound - uNumberOfFoldersFound - uNumberOfFilesFound;
-        nProgress = 1.0 * uNumberOfItemsCompleted / uNumberOfItemsFound if uNumberOfItemsFound else 0;
-        nSubProgress = 1.0 * oSelf.oMatchesByFilePath.uSize / uNumberOfFilesFound if uNumberOfFilesFound else 0;
+        # TODO: nProgress and nSubProgress should never be > 1 but I've ran into this happening
+        # in nSubProgress. This is why I use min() to prevent it from causing an issue.
+        # I want to find out why this happens and fix it.
+        nProgress = min(1.0, 1.0 * uNumberOfItemsCompleted / uNumberOfItemsFound) if uNumberOfItemsFound else 0;
+        nSubProgress = min(1.0, 1.0 * oSelf.oMatchesByFilePath.uSize / uNumberOfFilesFound) if uNumberOfFilesFound else 0;
         oConsole.fProgressBar(
           nProgress,
           [
