@@ -111,26 +111,17 @@ try:
     bUseUEditCommandTemplate = False;
     asCommandTemplate = [];
     for (sArgument, s0LowerName, s0Value) in fatsArgumentLowerNameAndValue():
-      if s0LowerName in ["r", "recursive"]:
-        bRecursive = fxProcessBooleanArgument(s0LowerName, s0Value);
-      elif s0LowerName in ["q", "quiet"]:
-        bQuiet = fxProcessBooleanArgument(s0LowerName, s0Value);
-      elif s0LowerName in ["v", "verbose"]:
-        bVerbose = fxProcessBooleanArgument(s0LowerName, s0Value);
-      elif s0LowerName in ["p", "pause"]:
-        bPause = fxProcessBooleanArgument(s0LowerName, s0Value);
-      elif s0LowerName in ["u", "unicode"]:
-        bUnicode = fxProcessBooleanArgument(s0LowerName, s0Value);
-      elif s0LowerName in ["e", "uedit"]:
+      if s0LowerName in ["e", "uedit"]:
         bUseUEditCommandTemplate = fxProcessBooleanArgument(s0LowerName, s0Value);
-      elif s0LowerName in ["t", "tabs"]:
-        xValue = fxProcessBooleanArgument(s0LowerName, s0Value, u0CanAlsoBeAnIntegerLargerThan = 0);
-        uConvertTabsToSpaces = xValue if isinstance(xValue, int) else 8;
+      elif s0LowerName in ["ng", "no-git"]:
+        # Do not look in git repository related files.
+        arNegativePathRegExps.append(re.compile(r"^.*\\\.git(\\.*)?$"));
+        arNegativeNameRegExps.append(re.compile(r"^\.git\w*$"));
       elif s0LowerName in ["l", "lines"]:
         # valid formats : "C" "-B", "-B+A" "+A"
         if s0Value is None:
-          uNumberOfRelevantLinesBeforeMatch = 1;
-          uNumberOfRelevantLinesAfterMatch = 1;
+          uNumberOfRelevantLinesBeforeMatch = 0;
+          uNumberOfRelevantLinesAfterMatch = 0;
         else:
           o0BeforeAfterMatch = re.match(r"^(?:(\d+)|(?:\-(\d+))?(?:(?:,|,?\+)(\d+))?)$", s0Value);
           if o0BeforeAfterMatch is None:
@@ -148,6 +139,19 @@ try:
           else:
             uNumberOfRelevantLinesBeforeMatch = int(suBefore or 0);
             uNumberOfRelevantLinesAfterMatch = int(suAfter or 0);
+      elif s0LowerName in ["p", "pause"]:
+        bPause = fxProcessBooleanArgument(s0LowerName, s0Value);
+      elif s0LowerName in ["q", "quiet"]:
+        bQuiet = fxProcessBooleanArgument(s0LowerName, s0Value);
+      elif s0LowerName in ["r", "recursive"]:
+        bRecursive = fxProcessBooleanArgument(s0LowerName, s0Value);
+      elif s0LowerName in ["t", "tabs"]:
+        xValue = fxProcessBooleanArgument(s0LowerName, s0Value, u0CanAlsoBeAnIntegerLargerThan = 0);
+        uConvertTabsToSpaces = xValue if isinstance(xValue, int) else 8;
+      elif s0LowerName in ["u", "unicode"]:
+        bUnicode = fxProcessBooleanArgument(s0LowerName, s0Value);
+      elif s0LowerName in ["v", "verbose"]:
+        bVerbose = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName or s0Value: # arguments before "--"
         oRegExpMatch = grRegExpArgument.match(sArgument);
         if oRegExpMatch:
