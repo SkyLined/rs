@@ -35,7 +35,7 @@ try:
   from mExitCodes import *;
   oConsole = foConsoleLoader();
   
-  gsEditoryBinaryPath = os.path.join(os.getenv("LocalAppData"), "Programs", "Microsoft VS Code", "Code.exe");
+  gsEditoryBinaryPath = os.path.join(os.getenv("ProgramFiles"), "VSCodium", "VSCodium.exe");
 
   def frRegExp(sRegExp, sFlags):
     return re.compile(sRegExp, sum([
