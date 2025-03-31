@@ -28,6 +28,7 @@ class cMultithreadedFileContentMatcher(object):
     oSelf.oasNotScannedFilePaths = cList();
     oSelf.dMatched_auLineNumbers_by_sFilePath = {};
     oSelf.dRelevant_asbLines_by_uLineNumber_by_sFilePath = {};
+    oSelf.oMatchedValuesSet = set();
     oSelf.oScanThreadsStarted = cCounter(uMaxThreads);
     oSelf.oScanThreadsFinished = cCounter(0);
     oSelf.oFilePathsQueue = queue.Queue();
@@ -112,6 +113,7 @@ class cMultithreadedFileContentMatcher(object):
           for oMatch in rContentRegExp.finditer(sbContent):
             bFound = True;
             if oSelf.oException: return;
+            oSelf.oMatchedValuesSet.add(oMatch.group(0));
             uCurrentLineStartIndex = sbContent.rfind(b"\n", 0, oMatch.start()) + 1;
             uCurrentLineNumber = sbContent.count(b"\n", 0, uCurrentLineStartIndex) + 1;
             # Mark the line on which the match starts

@@ -80,3 +80,6 @@ CONTENT                                 = 0xFF07; # The unmatched file content l
 CONTENT_MATCH                           = 0xFF1B; # The matched file content lines
 CONTENT_EOL                             = 0xFF08; # End of file content line marker
 CHAR_EOL                                = "←↓";
+
+VALUES_HEADER                           = 0xFF0B;
+VALUES                                  = 0xFF1B;

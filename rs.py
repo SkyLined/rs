@@ -109,14 +109,13 @@ try:
     uNumberOfRelevantLinesBeforeMatch = None;
     uNumberOfRelevantLinesAfterMatch = None;
     bOpenEditor = False;
+    bListValues = False;
     asCommandTemplate = [];
     for (sArgument, s0LowerName, s0Value) in fatsArgumentLowerNameAndValue():
-      elif s0LowerName in ["ng", "no-git"]:
-        # Do not look in git repository related files.
-        arNegativePathRegExps.append(re.compile(r"^.*\\\.git(\\.*)?$"));
-        arNegativeNameRegExps.append(re.compile(r"^\.git\w*$"));
       if s0LowerName in ["e", "edit"]:
         bOpenEditor = fxProcessBooleanArgument(s0LowerName, s0Value);
+      elif s0LowerName in ["i", "list", "list-values"]:
+        bListValues = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName in ["l", "lines"]:
         # valid formats : "C" "-B", "-B+A" "+A"
         if s0Value is None:
@@ -139,6 +138,10 @@ try:
           else:
             uNumberOfRelevantLinesBeforeMatch = int(suBefore or 0);
             uNumberOfRelevantLinesAfterMatch = int(suAfter or 0);
+      elif s0LowerName in ["ng", "no-git"]:
+        # Do not look in git repository related files.
+        arNegativePathRegExps.append(re.compile(r"^.*\\\.git(\\.*)?$"));
+        arNegativeNameRegExps.append(re.compile(r"^\.git\w*$"));
       elif s0LowerName in ["p", "pause"]:
         bPause = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName in ["q", "quiet"]:
@@ -430,6 +433,16 @@ try:
               sys.exit(guExitCodeCannotExecuteCommand);
         if not bFirst:
           oConsole.fOutput();
+        if bListValues:
+          oConsole.fOutput(
+            VALUES_HEADER,
+            "The following unique values were matched:"
+          );
+          for sbMatchedValue in sorted(list(oContentMatchingResults.oMatchedValuesSet)):
+            oConsole.fOutput(
+              COLOR_NORMAL, "  ",
+              VALUES, str(sbMatchedValue, "latin1"),
+            );
       if bVerbose:
         if len(oContentMatchingResults.asNotScannedFilePaths) > 0:
           oConsole.fOutput(COLOR_INFO, CHAR_INFO, COLOR_NORMAL, " Scanned %d/%d files, %s bytes." % (
