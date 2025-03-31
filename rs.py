@@ -108,15 +108,15 @@ try:
     uConvertTabsToSpaces = 4;
     uNumberOfRelevantLinesBeforeMatch = None;
     uNumberOfRelevantLinesAfterMatch = None;
-    bUseUEditCommandTemplate = False;
+    bOpenEditor = False;
     asCommandTemplate = [];
     for (sArgument, s0LowerName, s0Value) in fatsArgumentLowerNameAndValue():
-      if s0LowerName in ["e", "uedit"]:
-        bUseUEditCommandTemplate = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName in ["ng", "no-git"]:
         # Do not look in git repository related files.
         arNegativePathRegExps.append(re.compile(r"^.*\\\.git(\\.*)?$"));
         arNegativeNameRegExps.append(re.compile(r"^\.git\w*$"));
+      if s0LowerName in ["e", "edit"]:
+        bOpenEditor = fxProcessBooleanArgument(s0LowerName, s0Value);
       elif s0LowerName in ["l", "lines"]:
         # valid formats : "C" "-B", "-B+A" "+A"
         if s0Value is None:
@@ -218,7 +218,7 @@ try:
         asCommandTemplate.append(sArgument);
     
     # Check arguments and set some defaults
-    if bUseUEditCommandTemplate:
+    if bOpenEditor:
       if asCommandTemplate:
         oConsole.fOutput(
           COLOR_ERROR, CHAR_ERROR,
@@ -395,7 +395,7 @@ try:
               auRelevantLineNumbers = sorted(oContentMatchingResults.dRelevant_asbLines_by_uLineNumber_by_sFilePath[sFilePath].keys());
               uPreviousLineNumber = None;
               for uRelevantLineNumber in auRelevantLineNumbers:
-                # Seperator between non-sequential sections of file.
+                # Separator between non-sequential sections of file.
                 if uPreviousLineNumber is not None and uRelevantLineNumber > uPreviousLineNumber + 1:
                   oConsole.fOutput(
                     FILE_BOX, " ",
@@ -405,7 +405,7 @@ try:
                     COLOR_NORMAL, ":",
                     FILE_CUT_LINENO, str(auMatchedLineNumbers[uNextMatchedLineIndex]),
                     FILE_CUT_PAD, " ", sPadding = "\xB7",
-                 );
+                );
                 sbRelevantLine = oContentMatchingResults.dRelevant_asbLines_by_uLineNumber_by_sFilePath[sFilePath][uRelevantLineNumber];
                 bMatchedLine = uNextMatchedLineIndex < len(auMatchedLineNumbers) and uRelevantLineNumber == auMatchedLineNumbers[uNextMatchedLineIndex];
                 if bMatchedLine:
